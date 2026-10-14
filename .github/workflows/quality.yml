@@ -1,0 +1,49 @@
+name: Quality
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: ctype, dom, iconv, mbstring, xml, xmlwriter
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: composer validate --strict
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer check-platform-reqs
+      - run: composer audit --locked
+      - run: composer check
+      - run: python -m pip install --require-hashes -r tools/validation-requirements.txt
+      - name: Verify original Adobe guide identity
+        run: python tools/validate_reference.py
+      - name: Check reproducible font fixtures
+        run: |
+          python tools/build_layout_fixture.py --check
+          python tools/build_unicode_fixtures.py --check
+      - name: Compare font interpretation with fontTools
+        run: python tools/validate_font_model.py --php php tests/fixtures/ToolkitLayout.ttf tests/fixtures/ToolkitUnicode.ttf tests/fixtures/ToolkitUnicode.otf
+      - name: Compare supported glyph substitutions with HarfBuzz
+        run: python tools/validate_layout.py --php php
+      - name: Run the documented example
+        run: |
+          php examples/substitution.php
+          php examples/manual-ligature.php
+          php examples/font-metrics.php

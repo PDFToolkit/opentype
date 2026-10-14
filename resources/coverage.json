@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "specification": {
+    "name": "OpenType",
+    "version": "1.9.1",
+    "url": "https://learn.microsoft.com/en-us/typography/opentype/spec/",
+    "reviewDate": "2026-10-14"
+  },
+  "packageVersion": "0.1.0",
+  "completeSpecificationImplemented": false,
+  "supportedContainerSignatures": [
+    "0x00010000",
+    "OTTO"
+  ],
+  "implementedMechanisms": [
+    "bounded-big-endian-views",
+    "typed-tags-codepoints-glyph-identities",
+    "sfnt-directory-and-checksum-policies",
+    "unicode-cmap-formats-4-12-14",
+    "horizontal-metrics",
+    "gsub-script-language-feature-lookup-selection",
+    "gsub-types-1-2-3-4-7",
+    "explicit-alternate-policy",
+    "source-clusters",
+    "record-operation-output-budgets"
+  ],
+  "executionConstraints": {
+    "lookupFlags": 0,
+    "glyphOrder": "caller-supplied logical sequence",
+    "featureVariations": false,
+    "fullUnicodeShaping": false
+  },
+  "tableCoverage": {
+    "cmap": {
+      "status": "partial",
+      "scope": "Unicode formats 4 and 12; variation sequences format 14"
+    },
+    "head": {
+      "status": "partial",
+      "scope": "Version, checksum adjustment, magic and unitsPerEm; remaining fields retained as bytes"
+    },
+    "hhea": {
+      "status": "partial",
+      "scope": "Version, metricDataFormat and numberOfHMetrics; remaining fields retained as bytes"
+    },
+    "hmtx": {
+      "status": "implemented",
+      "scope": "Horizontal advances and left side bearings, including repeated final advance"
+    },
+    "maxp": {
+      "status": "partial",
+      "scope": "Version and numGlyphs; remaining fields retained as bytes"
+    },
+    "name": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "OS/2": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "post": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "cvt ": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "fpgm": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "glyf": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "loca": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "prep": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "gasp": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "CFF ": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "CFF2": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "VORG": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "SVG ": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "EBDT": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "EBLC": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "EBSC": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "CBDT": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "CBLC": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "sbix": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "BASE": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "GDEF": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "GPOS": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "GSUB": {
+      "status": "partial",
+      "scope": "Script/language/feature/lookup structures and supported substitutions, types 1/2/3/4/7"
+    },
+    "JSTF": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "MATH": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "avar": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "cvar": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "fvar": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "gvar": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "HVAR": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "MVAR": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "STAT": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "VVAR": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "COLR": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "CPAL": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "DSIG": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "hdmx": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "kern": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "LTSH": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "MERG": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "meta": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "PCLT": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "VDMX": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "vhea": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    },
+    "vmtx": {
+      "status": "pending",
+      "scope": "Raw table bytes available; semantic model and execution pending"
+    }
+  },
+  "pendingMechanisms": [
+    "gsub-contextual-types-5-6-8",
+    "nonzero-lookup-flags",
+    "gdef",
+    "gpos",
+    "font-variations",
+    "outlines-and-instruction-execution",
+    "font-collections",
+    "woff-and-woff2",
+    "font-writing",
+    "subsetting"
+  ]
+}

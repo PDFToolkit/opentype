@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "documents": [
+    {
+      "filename": "OTGuide.pdf",
+      "title": "OpenType User Guide for Adobe Fonts",
+      "publisher": "Adobe Systems Incorporated",
+      "publicationDate": "2008-10-07",
+      "role": "Usage guide; technical definitions use the OpenType specification",
+      "physicalPdfPages": 13,
+      "bytes": 826379,
+      "sha256": "39bc32fa334c76d488312ef92c16a5e147315d1c73e8b6ead77f410d297739f4",
+      "path": "resources/reference-documents/OTGuide.pdf",
+      "originalBytesPreserved": true,
+      "composerArchiveIncluded": false
+    }
+  ]
+}
