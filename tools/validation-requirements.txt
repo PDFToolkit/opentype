@@ -1,0 +1,26 @@
+# Independent developer/test oracles only; never installed by Composer.
+# PyPI release SHA-256 digests. CPython 3.12/3.13, Linux x86-64 and Windows AMD64.
+
+# https://pypi.org/pypi/fonttools/4.62.0/json
+# fonttools-4.62.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+# fonttools-4.62.0-cp312-cp312-win_amd64.whl
+# fonttools-4.62.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+# fonttools-4.62.0-cp313-cp313-win_amd64.whl
+# fonttools-4.62.0-py3-none-any.whl
+# fonttools-4.62.0.tar.gz
+fonttools==4.62.0 \
+    --hash=sha256:31a804c16d76038cc4e3826e07678efb0a02dc4f15396ea8e07088adbfb2578e \
+    --hash=sha256:658ab837c878c4d2a652fcbb319547ea41693890e6434cf619e66f79387af3b8 \
+    --hash=sha256:106aec9226f9498fc5345125ff7200842c01eda273ae038f5049b0916907acee \
+    --hash=sha256:6826a5aa53fb6def8a66bf423939745f415546c4e92478a7c531b8b6282b6c3b \
+    --hash=sha256:75064f19a10c50c74b336aa5ebe7b1f89fd0fb5255807bfd4b0c6317098f4af3 \
+    --hash=sha256:0dc477c12b8076b4eb9af2e440421b0433ffa9e1dcb39e0640a6c94665ed1098
+
+# https://pypi.org/pypi/uharfbuzz/0.56.3/json
+# uharfbuzz-0.56.3-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+# uharfbuzz-0.56.3-cp310-abi3-win_amd64.whl
+# uharfbuzz-0.56.3.tar.gz
+uharfbuzz==0.56.3 \
+    --hash=sha256:450c32c04dfdfe9dc69b68250605538b493c3444823383a2ede100f0e6686d8e \
+    --hash=sha256:6d1a4e9de1fa893e4a2ca7e8140b55073342f965bebb00f047196678d672c799 \
+    --hash=sha256:dbb6cc2c36b42929e4059290a980640f2391d858f6eab36e369ed4f373f96caa
