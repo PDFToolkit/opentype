@@ -1,0 +1,72 @@
+{
+    "name": "pdftoolkit/opentype",
+    "type": "library",
+    "description": "Explicit OpenType font objects, bounded SFNT reading and glyph substitutions",
+    "keywords": [
+        "opentype",
+        "fonts",
+        "glyphs",
+        "ligatures",
+        "typography",
+        "object-model",
+        "php"
+    ],
+    "homepage": "https://pdftoolkit.github.io/modules/opentype/",
+    "support": {
+        "issues": "https://github.com/PDFToolkit/opentype/issues",
+        "source": "https://github.com/PDFToolkit/opentype",
+        "docs": "https://pdftoolkit.github.io/modules/opentype/"
+    },
+    "require": {
+        "php": "^8.3",
+        "php-64bit": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^12.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mathias STRASSER",
+            "email": "contact@roukmoute.fr"
+        }
+    ],
+    "minimum-stability": "stable",
+    "config": {
+        "platform": {
+            "php": "8.3.0"
+        },
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "PDFToolkit\\OpenType\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PDFToolkit\\OpenType\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "phpstan analyse --no-progress",
+        "format": "php-cs-fixer fix",
+        "format:check": "php-cs-fixer fix --dry-run --diff",
+        "check": [
+            "@test",
+            "@analyse",
+            "@format:check"
+        ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}
