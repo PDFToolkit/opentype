@@ -6,7 +6,7 @@
     "url": "https://learn.microsoft.com/en-us/typography/opentype/spec/",
     "reviewDate": "2026-10-15"
   },
-  "packageVersion": "0.2.0",
+  "packageVersion": "0.3.0",
   "completeSpecificationImplemented": false,
   "supportedContainerSignatures": [
     "0x00010000",
@@ -55,7 +55,12 @@
     "fullUnicodeShaping": false,
     "initialPositions": "caller-supplied design-unit metrics",
     "outlinePointAccess": "explicit optional provider; no bytecode execution",
-    "deviceScale": "explicit unitsPerEm and optional pixelsPerEm"
+    "deviceScale": "explicit unitsPerEm and optional pixelsPerEm",
+    "outlineExecution": "unhinted TrueType/CFF/CFF2 geometry, explicit variations and phantom providers",
+    "instructionExecution": false,
+    "rasterization": false,
+    "automaticInstanceNaming": false,
+    "staticInstanceFontWriting": false
   },
   "tableCoverage": {
     "cmap": {

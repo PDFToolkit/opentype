@@ -2,23 +2,18 @@
 
 English | [Français](CHANGELOG.fr.md)
 
-## Unreleased
+## 0.3.0 — 2026-10-15
 
 - Read and explicitly select precomputed hdmx/LTSH/VDMX metrics with bounded immutable records and a fontTools oracle.
-
 - Complete head/hhea/maxp/post models, versioned gasp recommendations and STAT 1.0–1.2 axis values with explicit matching; compare every field against fontTools.
-
 - Evaluate native gvar/cvar tuples, infer sparse contour deltas and vary nested composites with explicit phantom metrics, USE_MY_METRICS and phantom attachment; retain unscaled CVT fractions.
-
 - Execute bounded CFF/CFF2 Type 2 cubic paths, subroutines, explicit native blends, legacy charsets/encodings and composites; validate against independent fontTools/HarfBuzz geometry.
-
 - Decode bounded loca/glyf outlines and assemble unhinted components with explicit offset policy, cycle/output budgets and quadratic paths; compare all points and drawn geometry with fontTools/HarfBuzz.
-
 - Read vertical metrics and CFF origins; evaluate native HVAR/VVAR/MVAR deltas through explicit instance objects with bounded index maps and independent fontTools/HarfBuzz comparisons.
-
 - Model name versions 0/1 with exact multilingual records and explicit decoders; expose every OS/2 version 0–5 field, version-specific embedding flags and optical ranges.
-
 - Read fvar/avar 1.0 with immutable axis and named-instance objects, explicit user selection, bounded normalization and independent two-axis fontTools/HarfBuzz checks.
+
+- Document all 50 table scopes and remaining work in English/French: 27 implemented scopes, 4 partial, 19 pending; no VM, rasterizer, full shaper, container decoder or font writer is implied.
 
 ## 0.2.0 — 2026-10-15
 

@@ -2,20 +2,21 @@
 
 English | [Français](README.fr.md)
 
-**Pure-object font parsing, substitutions and glyph positioning for PHP 8.3+.**
+**Pure-object OpenType metadata, variable outlines, metrics and layout for PHP 8.3+.**
 
 OpenType belongs to [PDFToolkit](https://github.com/PDFToolkit), while remaining
 independent of PDF: installing `pdftoolkit/opentype` installs no PDF package.
 Its names and structures follow the [OpenType 1.9.1 specification](https://learn.microsoft.com/en-us/typography/opentype/spec/).
 
-Read a single SFNT font, Unicode character maps and horizontal metrics, then
-execute GSUB substitutions and GPOS positioning through immutable script,
-language, feature, lookup, anchor and variation objects. Applications choose
-features, alternates, glyph order, initial positions and variation instances
-explicitly. There is no global registry or hidden file access.
+Read individual TrueType/OTTO fonts, multilingual metadata and horizontal/vertical
+metrics; normalize user axes, evaluate variable metrics, assemble quadratic
+TrueType outlines and execute cubic CFF/CFF2 programs. GSUB substitutions and
+GPOS positioning use immutable script, language, feature, lookup, anchor and
+variation objects. Applications explicitly select instances and execution
+policies. There is no global registry or hidden file access.
 
 ```sh
-composer require 'pdftoolkit/opentype:^0.2'
+composer require 'pdftoolkit/opentype:^0.3'
 ```
 
 PHP 8.3 or newer and a 64-bit platform are required. There are no runtime package
@@ -52,32 +53,41 @@ features, applies their lookups and returns a new glyph sequence. An `ffi`
 ligature is produced only if the font and selection define it. Source clusters
 remain available for subsequent text handling.
 
-The [substitution walkthrough](docs/substitutions.md) explains ligatures, small
-capitals and alternates. The [positioning and variation guide](docs/positioning.md)
-explains native GPOS, GDEF filtering, device corrections and variable layout. The [architecture](docs/architecture.md),
-[coverage](docs/coverage.md), [security policy](SECURITY.md) and
-[shared documentation](https://pdftoolkit.github.io/modules/opentype/) describe
-the contracts. API pages are generated from the exact published source.
+Guides follow each object contract:
 
-## Scope of 0.2
+- [Substitutions](docs/substitutions.md) and [positioning](docs/positioning.md).
+- [User axes](docs/font-axes.md), [variable metrics](docs/variable-metrics.md),
+  [names and OS/2](docs/font-metadata.md), [headers and styles](docs/font-headers-and-styles.md).
+- [TrueType outlines](docs/truetype-outlines.md), [gvar/cvar and phantom metrics](docs/truetype-variations.md),
+  [CFF/CFF2 outlines](docs/cff-outlines.md), [precomputed device metrics](docs/device-metrics.md).
+
+The [architecture](docs/architecture.md), [coverage](docs/coverage.md),
+[security policy](SECURITY.md) and [shared documentation](https://pdftoolkit.github.io/modules/opentype/)
+describe the boundaries. API pages are generated from the exact published source.
+
+## Scope of 0.3
 
 | Mechanism | Implementation |
 | --- | --- |
-| Individual SFNT directory | TrueType and OTTO identities, preserved tables, bounded reads and checksum policies |
-| Unicode mapping | cmap formats 4/12 and format 14 variation selectors |
-| Horizontal metrics | Units per em, advances and left side bearings |
-| GSUB | Types 1–8, including contextual/chained formats 1–3 and reverse chaining |
-| GDEF | Glyph/mark classes, filtering sets, attachment points, ligature carets and ItemVariationStore |
-| GPOS | Types 1–9: single/pair/class kerning, cursive and mark attachments, contextual rules and extensions |
-| Layout variations | Conditional feature tables, native region/delta interpolation and signed Device tables |
-| Selection | Script, language, required/requested features, alternates, GDEF flags and explicit normalized coordinates |
+| Individual SFNT and cmap | TrueType/OTTO directories, checksums, Unicode 4/12/14 mappings |
+| Metadata | Complete head/hhea/maxp/post, name 0/1, OS/2 0–5 and STAT 1.0–1.2 records |
+| Axes and metrics | fvar/avar 1.0 normalization, horizontal/vertical metrics, native HVAR/VVAR/MVAR |
+| TrueType geometry | Bounded loca/glyf decoding, composite assembly, quadratic paths, native gvar/cvar and explicit phantom metrics |
+| CFF/CFF2 geometry | Bounded Type 2 programs and subroutines, cubic paths, explicit matrices, encodings and native blends |
+| Layout | GSUB 1–8, GDEF, GPOS 1–9, all contextual formats, native variations and Device corrections |
+| Device declarations | gasp recommendations, hdmx widths, LTSH thresholds and VDMX heights with explicit selection |
 
-Full variable-font instantiation (axis normalization, outlines and metric
-variation), outline interpretation, font writing and other table semantics
-remain pending. Table-byte access does not establish support for those tables.
-The engine processes an already ordered glyph sequence; it is not a complete
-Unicode shaping or bidirectional text engine. The `0.x` API may evolve between
-minor releases.
+The [coverage inventory](docs/coverage.md) identifies 27 implemented table scopes,
+4 partial tables and 19 pending tables. TrueType instruction execution, CFF hint
+application, color/bitmap/baseline/math/justification tables, legacy auxiliary
+tables, collections, WOFF/WOFF2, writing and subsetting remain absent. Executing an
+unhinted outline or metric instance does not write a static font. Preserved bytes
+do not establish semantic support.
+
+The layout engines consume an already ordered glyph sequence. Complete Unicode
+shaping, bidirectional layout and rasterization need separate consumers. PDF
+embedding and HTML conversion retain their own explicit format contracts. The
+`0.x` API may evolve between minor releases.
 
 The supplied [Adobe OTGuide.pdf](resources/reference-documents/OTGuide.pdf) is
 retained unchanged as a usage reference. Its original name, 13 pages and SHA-256
@@ -95,6 +105,7 @@ php examples/manual-ligature.php
 php examples/font-metrics.php
 php examples/positioning.php
 php examples/variable-layout.php
+php examples/variable-outlines.php
 ```
 
 The example uses a reproducible font authored for the tests and prints its glyph

@@ -85,8 +85,8 @@ de ligature sous forme d'enregistrements typés.
 
 `NormalizedCoordinates` exprime les coordonnées dans l'ordre des axes et conserve
 la précision signée 2.14 requise après la conversion 16.16 d'OpenType. La
-normalisation des valeurs utilisateur et la transformation `avar` restent
-distinctes ; cette API ne devine pas l'instance. Fournir les coordonnées à
+normalisation des valeurs utilisateur et la transformation `avar` utilisent les
+[objets d’axes distincts](font-axes.md) ; cette API ne devine pas l'instance. Fournir les coordonnées à
 `FeatureSelection` pour évaluer les FeatureVariations GSUB/GPOS. Les conditions
 suivent leur ordre de priorité ; le premier enregistrement admissible remplace
 les tables de fonctionnalités. Une condition future inconnue ou une version de
@@ -111,8 +111,9 @@ $positioned = (new PositioningEngine())->apply($gpos, $selection, $initial, $def
 
 Vérifier la présence de `itemVariationStore` avant de construire l'instance. Un
 VariationIndex effectivement utilisé sans fournisseur de deltas provoque une
-erreur explicite. Ce mécanisme n'instancie ni `gvar`, ni HVAR/VVAR/MVAR, ni les
-contours CFF2, ni une fonte variable complète.
+erreur explicite. La variation du layout reste distincte des [instances métriques](variable-metrics.md),
+des [variations TrueType](truetype-variations.md) et des [contours CFF2](cff-outlines.md).
+Ces objets explicites n'écrivent pas un fichier de fonte statique.
 
 ## Exécuter les exemples et contrôles indépendants
 

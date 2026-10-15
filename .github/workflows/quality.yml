@@ -78,3 +78,4 @@ jobs:
           php examples/font-metrics.php
           php examples/positioning.php
           php examples/variable-layout.php
+          php examples/variable-outlines.php

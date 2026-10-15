@@ -47,8 +47,8 @@ inclusive and upper exclusive, with 65535 representing infinity.
 Readers check storage boundaries, sorted identities, versioned lengths and
 aggregate string byte/record limits before copying. Repeated references consume
 the aggregate budget even when they alias the same stored bytes. The independent
-fontTools oracle compares 179 name records and 420 OS/2 fields over 12 font cases,
-including all six versions. Native tests also cover name version 1, supplementary
+fontTools oracle compares every name record and OS/2 field in the original
+fixtures and all six table versions. Native tests also cover name version 1, supplementary
 Unicode, legacy OS/2 and malformed data.
 
 Technical sources: [name](https://learn.microsoft.com/en-us/typography/opentype/spec/name)

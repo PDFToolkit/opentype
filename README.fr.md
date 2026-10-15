@@ -2,20 +2,22 @@
 
 [English](README.md) | Français
 
-**Lecture des fontes, substitutions et positionnement des glyphes en pur objet pour PHP 8.3+.**
+**Métadonnées, contours variables, métriques et layout OpenType en pur objet pour PHP 8.3+.**
 
 OpenType fait partie de [PDFToolkit](https://github.com/PDFToolkit) et reste
 indépendant du PDF : installer `pdftoolkit/opentype` n'installe aucun package PDF.
 Ses noms et structures suivent la [spécification OpenType 1.9.1](https://learn.microsoft.com/en-us/typography/opentype/spec/).
 
-Lire une fonte SFNT individuelle, ses correspondances Unicode et ses métriques
-horizontales, puis exécuter GSUB et GPOS avec des objets immuables de script,
-langue, fonctionnalité, lookup, ancre et variation. L'application choisit
-explicitement fonctionnalités, variantes, ordre des glyphes, positions initiales
-et instances variables. Il n'y a ni registre global ni accès aux fichiers caché.
+Lire les fontes TrueType/OTTO individuelles, leurs métadonnées multilingues et
+métriques horizontales/verticales ; normaliser les axes utilisateur, évaluer les
+métriques variables, assembler les contours TrueType quadratiques et exécuter les
+programmes cubiques CFF/CFF2. Les substitutions GSUB et le positionnement GPOS
+utilisent des objets immuables de script, langue, fonctionnalité, lookup, ancre et
+variation. L'application choisit explicitement instances et politiques d'exécution.
+Il n'y a ni registre global ni accès fichier caché.
 
 ```sh
-composer require 'pdftoolkit/opentype:^0.2'
+composer require 'pdftoolkit/opentype:^0.3'
 ```
 
 PHP 8.3 ou ultérieur et une plateforme 64 bits sont requis. Aucune dépendance de
@@ -53,32 +55,42 @@ nouvelle séquence. Une ligature `ffi` n'est produite que si la fonte et la
 sélection la définissent. Les clusters d'origine restent disponibles pour le
 traitement ultérieur du texte.
 
-Le [didacticiel des substitutions](docs/fr/substitutions.md) explique ligatures,
-petites capitales et variantes. Le [guide du positionnement et des variations](docs/fr/positioning.md)
-explique GPOS, le filtrage GDEF, les corrections Device et les variations du layout. L'[architecture](docs/fr/architecture.md), la
-[couverture](docs/fr/coverage.md), la [politique de sécurité](SECURITY.fr.md) et
-la [documentation commune](https://pdftoolkit.github.io/fr/modules/opentype/)
-précisent les contrats. Les pages d'API proviennent de la version publiée exacte.
+Les guides suivent les contrats des objets :
 
-## Couverture de la version 0.2
+- [Substitutions](docs/fr/substitutions.md) et [positionnement](docs/fr/positioning.md).
+- [Axes utilisateur](docs/fr/font-axes.md), [métriques variables](docs/fr/variable-metrics.md),
+  [noms et OS/2](docs/fr/font-metadata.md), [en-têtes et styles](docs/fr/font-headers-and-styles.md).
+- [Contours TrueType](docs/fr/truetype-outlines.md), [gvar/cvar et métriques fantômes](docs/fr/truetype-variations.md),
+  [contours CFF/CFF2](docs/fr/cff-outlines.md), [métriques précalculées](docs/fr/device-metrics.md).
+
+L'[architecture](docs/fr/architecture.md), la [couverture](docs/fr/coverage.md), la
+[politique de sécurité](SECURITY.fr.md) et la [documentation partagée](https://pdftoolkit.github.io/fr/modules/opentype/)
+décrivent les frontières. Les pages API proviennent du code exact publié.
+
+## Périmètre de 0.3
 
 | Mécanisme | Implémentation |
 | --- | --- |
-| Répertoire SFNT individuel | Identités TrueType et OTTO, tables conservées, lectures bornées et politiques de somme de contrôle |
-| Correspondances Unicode | Formats cmap 4/12 et sélecteurs de variation du format 14 |
-| Métriques horizontales | Unités par em, avances et approches gauches |
-| GSUB | Types 1 à 8, dont formats contextuels/chaînés 1 à 3 et substitutions inverses |
-| GDEF | Classes de glyphes/marques, ensembles de filtrage, points d'attache, curseurs de ligature et ItemVariationStore |
-| GPOS | Types 1 à 9 : ajustements simples, crénage par paires/classes, attaches cursives et marques, contextes et extensions |
-| Variations du layout | Tables conditionnelles de fonctionnalités, interpolation native des régions/deltas et tables Device signées |
-| Sélection | Script, langue, fonctionnalités obligatoires/demandées, variantes, flags GDEF et coordonnées normalisées explicites |
+| SFNT individuel et cmap | Répertoires TrueType/OTTO, sommes de contrôle et correspondances Unicode 4/12/14 |
+| Métadonnées | Enregistrements complets head/hhea/maxp/post, name 0/1, OS/2 0–5 et STAT 1.0–1.2 |
+| Axes et métriques | Normalisation fvar/avar 1.0, métriques horizontales/verticales, HVAR/VVAR/MVAR natifs |
+| Géométrie TrueType | Décodage loca/glyf borné, assemblage composite, tracés quadratiques, gvar/cvar natifs et métriques fantômes explicites |
+| Géométrie CFF/CFF2 | Programmes Type 2 et sous-programmes bornés, tracés cubiques, matrices explicites, encodages et blends natifs |
+| Layout | GSUB 1–8, GDEF, GPOS 1–9, tous les formats contextuels, variations natives et corrections Device |
+| Déclarations de périphérique | Recommandations gasp, largeurs hdmx, seuils LTSH et hauteurs VDMX avec sélection explicite |
 
-L'instanciation complète des fontes variables (normalisation des axes, contours
-et variations des métriques), l'interprétation des contours, l'écriture et la
-sémantique d'autres tables restent à implémenter. L'accès aux octets ne
-signifie pas que le mécanisme d'une table est pris en charge. Le moteur reçoit
-des glyphes déjà ordonnés ; ce n'est pas un moteur complet de shaping Unicode ou
-de texte bidirectionnel. L'API `0.x` peut évoluer entre versions mineures.
+L'[inventaire de couverture](docs/fr/coverage.md) identifie 27 périmètres de tables
+implémentés, 4 tables partielles et 19 en attente. Exécution des instructions
+TrueType, application des hints CFF, tables de couleur/bitmap/lignes de
+base/mathématiques/justification, tables auxiliaires historiques, collections,
+WOFF/WOFF2, écriture et sous-ensembles restent absents. Exécuter une instance de
+contour non hinté ou de métriques n'écrit pas une fonte statique. Les octets
+conservés n'établissent pas de support sémantique.
+
+Les moteurs de layout consomment une séquence de glyphes déjà ordonnée. Shaping
+Unicode complet, ordre bidirectionnel et rastérisation demandent des consommateurs
+distincts. Incorporation PDF et conversion HTML gardent leurs propres contrats de
+formats explicites. L'API `0.x` peut évoluer entre versions mineures.
 
 Le [document Adobe OTGuide.pdf fourni](resources/reference-documents/OTGuide.pdf)
 est conservé sans modification comme référence d'utilisation. Son nom, ses
@@ -97,6 +109,7 @@ php examples/manual-ligature.php
 php examples/font-metrics.php
 php examples/positioning.php
 php examples/variable-layout.php
+php examples/variable-outlines.php
 ```
 
 L'exemple utilise une fonte reproductible créée pour les tests et affiche les

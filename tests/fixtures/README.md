@@ -51,3 +51,13 @@ components and all-off-curve contours without using third-party outlines.
 hdmx widths, LTSH thresholds and shared VDMX ratio groups. Its original values are
 synthetic declarations, not claimed rasterizer output. Reproduce it with
 `tools/build_device_fixture.py`.
+
+`ToolkitCff.otf` and `ToolkitCff2.otf` cover original cubic operators, flex forms,
+subroutines, encodings, legacy composites and two-axis blends. Reproduce them with
+`tools/build_cff_fixture.py`.
+
+`ToolkitGvar.ttf` exercises original sparse/intermediate/shared tuples, composite
+variation, phantom metrics and cvar. Reproduce it with `tools/build_gvar_fixture.py`.
+
+`ToolkitMetadata.ttf` contains original complete metadata, gasp ranges and all
+STAT value formats. Reproduce it with `tools/build_metadata_fixture.py`.

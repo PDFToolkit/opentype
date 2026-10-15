@@ -2,23 +2,18 @@
 
 [English](CHANGELOG.md) | Français
 
-## À paraître
+## 0.3.0 — 15 octobre 2026
 
 - Lire et sélectionner explicitement les métriques précalculées hdmx/LTSH/VDMX avec des objets immuables bornés et un oracle fontTools.
-
 - Compléter les modèles head/hhea/maxp/post, les recommandations gasp versionnées et les valeurs d’axes STAT 1.0–1.2 avec correspondance explicite ; comparer chaque champ à fontTools.
-
 - Évaluer les tuples gvar/cvar natifs, interpoler les deltas de contours omis et varier les composites imbriqués avec métriques fantômes explicites, USE_MY_METRICS et attachement fantôme ; conserver les fractions du CVT non mis à l’échelle.
-
 - Exécuter les tracés cubiques Type 2 CFF/CFF2 bornés, sous-programmes, blends natifs explicites, charsets/encodages historiques et composites ; comparer la géométrie à fontTools/HarfBuzz.
-
 - Décoder loca/glyf bornés et assembler les composants non hintés avec politique d’offset explicite, budgets de cycles/sortie et chemins quadratiques ; comparer points et géométrie avec fontTools/HarfBuzz.
-
 - Lire métriques verticales et origines CFF ; évaluer les deltas HVAR/VVAR/MVAR natifs par instances explicites, correspondances d’indices bornées et comparaisons fontTools/HarfBuzz indépendantes.
-
 - Modéliser name versions 0/1 avec enregistrements multilingues exacts et décodeurs explicites ; exposer tous les champs OS/2 versions 0–5, droits d’incorporation versionnés et plages optiques.
-
 - Lire fvar/avar 1.0 par objets immuables d’axes et d’instances nommées, sélection utilisateur explicite, normalisation bornée et contrôles indépendants fontTools/HarfBuzz sur deux axes.
+
+- Documenter les 50 périmètres de tables et les restes en anglais/français : 27 implémentés, 4 partiels, 19 en attente ; aucune VM, rastériseur, shaping complet, décodeur de conteneur ou écriture de fonte n’est implicite.
 
 ## 0.2.0 — 15 octobre 2026
 

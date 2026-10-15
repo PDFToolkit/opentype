@@ -1,7 +1,7 @@
 {
     "name": "pdftoolkit/opentype",
     "type": "library",
-    "description": "Pure-object OpenType font parsing, substitutions, glyph positioning and layout variations",
+    "description": "Pure-object OpenType metadata, variable outlines, metrics, substitutions and glyph positioning",
     "keywords": [
         "opentype",
         "fonts",
@@ -71,7 +71,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.2.x-dev"
+            "dev-main": "0.3.x-dev"
         }
     }
 }

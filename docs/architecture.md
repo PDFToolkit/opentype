@@ -53,6 +53,31 @@ and hinted outline-point access are explicit `PositioningContext` capabilities.
 Ligature attachment identities are independent from source cluster numbers.
 See the [positioning guide](positioning.md) for a complete example and limits.
 
+## Metadata, axes and outline execution
+
+`NameReader`, `Os2Reader`, header/profile readers and `StyleAttributesReader`
+return declared metadata. Exact name decoding, language selection and style
+matching are explicit. `FvarTable` normalizes tagged `UserCoordinates` in source
+axis order; `AvarTable` remaps that result. The same normalized instance can feed
+layout, metric and outline variation objects without mutating source tables.
+
+`GlyphMetricVariationInstance` and `MvarInstance` return deltas or explicitly
+adjusted values. `TrueTypeOutlineReader` decodes loca/glyf; `TrueTypeOutlineEngine`
+assembles unhinted geometry and optional gvar/phantom metrics. `CvarTable` varies
+unscaled CVT values. `CffReader` models programs and dictionaries;
+`CffOutlineEngine` executes bounded cubic paths, subroutines and explicit blends.
+A program's retained bytes, executed path and applied hint are distinct contracts.
+
+`OutlineLimits` bounds bytes, records, instructions, expanded points, operations
+and depth. Composite and subroutine cycles are refused. Phantom providers,
+ambiguous composite-offset policy, CFF random sources and transforms are explicit.
+Device metric readers select the font's precomputed declarations without invoking
+a scaler. No engine supplies a hidden VM, rasterizer or complete Unicode shaper.
+
+See [axes](font-axes.md), [metrics](variable-metrics.md),
+[TrueType variation](truetype-variations.md), [CFF/CFF2](cff-outlines.md) and the
+[complete coverage boundaries](coverage.md).
+
 ## Relationship to PDFToolkit
 
 The PDF core owns PDF font dictionaries, CID mappings and text operators.

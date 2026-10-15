@@ -68,11 +68,11 @@ the reproducible test font. Output contains glyph IDs and source clusters; the
 independent validator compares supported transformations with HarfBuzz. These
 are font-format results without a PDF rendering step.
 
-The [manual construction example](https://github.com/PDFToolkit/opentype/blob/v0.2.0/examples/manual-ligature.php)
+The [manual construction example](https://github.com/PDFToolkit/opentype/blob/v0.3.0/examples/manual-ligature.php)
 builds Coverage, LigatureSet, LookupList, FeatureList and ScriptList directly.
 Its illustrative identities are `f=4`, `i=5`, `ffi=7`: input `[4,4,5]` becomes
 `[7]` with source cluster `[0]`. This path uses the same engine without parsing
-a font. The [font metrics example](https://github.com/PDFToolkit/opentype/blob/v0.2.0/examples/font-metrics.php)
+a font. The [font metrics example](https://github.com/PDFToolkit/opentype/blob/v0.3.0/examples/font-metrics.php)
 separately explains Unicode mapping, design units and variation selectors.
 
 Contextual GSUB types 5/6 execute all three glyph/class/coverage formats; type 8

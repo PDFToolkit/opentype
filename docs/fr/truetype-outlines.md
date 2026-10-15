@@ -20,7 +20,7 @@ $outline = (new TrueTypeOutlineEngine(CompositeOffsetPolicy::Unscaled))
 $path = (new QuadraticPathBuilder())->build($outline);
 ```
 
-Le moteur assemble les composants non hintés de l’instance par défaut, en
+Le moteur assemble les composants non hintés, en
 appliquant transformations affines, offsets explicitement mis à l’échelle ou non,
 et attachement entre points de contours. Sans drapeau de mise à l’échelle des
 offsets, la politique vient de l’appelant : sans mise à l’échelle, avec, ou refus
@@ -36,18 +36,19 @@ et contours sans point explicitement sur courbe. `GlyphBounds` est le rectangle
 déclaré des points de contrôle, pas une affirmation de limite serrée de Bézier,
 variée ou hintée.
 
-Instructions, ajustement à la grille, attachement aux points fantômes et deltas
-gvar sont des mécanismes distincts, non exécutés par ce moteur. ROUND_XY_TO_GRID
-et USE_MY_METRICS restent des drapeaux préservés ; cette géométrie non hintée ne
-fait ni arrondi aux pixels ni sélection des métriques finales. Un attachement à
-un point fantôme ne peut être résolu avec les seuls contours et échoue
-explicitement. Les glyphes sans données et ceux sans contour mais avec
-instructions restent distinguables.
+Exécution des instructions et ajustement à la grille restent distincts.
+ROUND_XY_TO_GRID est conservé sans arrondi aux pixels. Les objets optionnels
+`GvarInstance` et `PhantomPointProvider` permettent variation native, attachement
+aux points fantômes et USE_MY_METRICS par `glyph()` ; voir les
+[variations TrueType](truetype-variations.md). `outline()` retourne la géométrie
+seule. Un attachement nécessitant des points fantômes échoue explicitement sans
+fournisseur. Les glyphes sans données et ceux sans contour mais avec instructions
+restent distinguables.
 
 La fixture originale exerce courbes, contours entièrement hors courbe, offsets,
 transformations uniformes/matricielles, attachements et imbrications. L’oracle
-indépendant compare 78 glyphes / 250 points de toutes les fixtures TrueType
-actuelles avec fontTools et leurs géométries quadratiques avec HarfBuzz. Le
+indépendant compare tous les points des glyphes des fixtures TrueType
+originales avec fontTools et leurs géométries quadratiques avec HarfBuzz. Le
 décalage d’origine horizontal de HarfBuzz (lsb moins xMin) est pris en compte
 explicitement. Les tests natifs couvrent loca court/long, cycles, drapeaux/plages
 invalides, instructions et budgets de sortie.

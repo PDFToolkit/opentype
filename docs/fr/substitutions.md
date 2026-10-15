@@ -70,11 +70,11 @@ fonte de test reproductible. La sortie contient les glyphes et clusters
 d'origine ; le validateur indépendant compare les transformations prises en
 charge avec HarfBuzz. Ce sont des résultats du format de fonte, sans rendu PDF.
 
-L'[exemple de construction manuelle](https://github.com/PDFToolkit/opentype/blob/v0.2.0/examples/manual-ligature.php)
+L'[exemple de construction manuelle](https://github.com/PDFToolkit/opentype/blob/v0.3.0/examples/manual-ligature.php)
 construit directement Coverage, LigatureSet, LookupList, FeatureList et ScriptList.
 Ses identités illustratives sont `f=4`, `i=5`, `ffi=7` : l'entrée `[4,4,5]` devient
 `[7]` avec le cluster d'origine `[0]`. Ce chemin utilise le même moteur sans lire
-de fonte. L'[exemple de métriques](https://github.com/PDFToolkit/opentype/blob/v0.2.0/examples/font-metrics.php)
+de fonte. L'[exemple de métriques](https://github.com/PDFToolkit/opentype/blob/v0.3.0/examples/font-metrics.php)
 explique séparément les correspondances Unicode, unités de dessin et sélecteurs
 de variation.
 

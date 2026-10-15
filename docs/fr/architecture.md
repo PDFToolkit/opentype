@@ -60,6 +60,35 @@ explicites de `PositioningContext`. L'identité d'attachement des ligatures est
 indépendante des numéros de cluster. Voir le [guide du positionnement](positioning.md)
 pour un exemple complet et ses limites.
 
+## Métadonnées, axes et exécution des contours
+
+`NameReader`, `Os2Reader`, les lecteurs d'en-têtes/profils et `StyleAttributesReader`
+retournent les métadonnées déclarées. Décodage exact des noms, choix linguistique
+et correspondance de styles sont explicites. `FvarTable` normalise les
+`UserCoordinates` par tag dans l'ordre des axes source ; `AvarTable` remappe le
+résultat. La même instance normalisée alimente layout, métriques et contours sans
+modifier les tables source.
+
+`GlyphMetricVariationInstance` et `MvarInstance` retournent des deltas ou des
+valeurs explicitement ajustées. `TrueTypeOutlineReader` décode loca/glyf ;
+`TrueTypeOutlineEngine` assemble la géométrie non hintée et les métriques
+gvar/fantômes optionnelles. `CvarTable` varie le CVT non mis à l'échelle.
+`CffReader` modélise programmes et dictionnaires ; `CffOutlineEngine` exécute les
+tracés cubiques, sous-programmes et blends explicites bornés. Octets conservés,
+tracé exécuté et hint appliqué sont des contrats distincts.
+
+`OutlineLimits` borne octets, enregistrements, instructions, points développés,
+opérations et profondeur. Les cycles de composants/sous-programmes sont refusés.
+Fournisseurs de points fantômes, politique d'offset composite ambigu, sources
+aléatoires CFF et transformations sont explicites. Les lecteurs de métriques de
+périphérique sélectionnent les déclarations précalculées sans appeler de scaler.
+Aucun moteur ne fournit implicitement une VM, un rastériseur ou un shaper Unicode
+complet.
+
+Voir [axes](font-axes.md), [métriques](variable-metrics.md),
+[variations TrueType](truetype-variations.md), [CFF/CFF2](cff-outlines.md) et les
+[frontières complètes de couverture](coverage.md).
+
 ## Relation avec PDFToolkit
 
 Le core PDF possède les dictionnaires de fontes PDF, correspondances CID et

@@ -78,8 +78,8 @@ implicitly. GDEF attachment-point lists and ligature carets are accessible on
 
 `NormalizedCoordinates` expresses coordinates in axis order and retains the
 required signed 2.14 precision after OpenType's 16.16 conversion. Normalization from
-user-facing axes and `avar` remapping are separate work; this API does not guess
-an instance. Supply coordinates in `FeatureSelection` to evaluate GSUB/GPOS
+user-facing axes and `avar` remapping use the separate [axis objects](font-axes.md);
+this API does not guess an instance. Supply coordinates in `FeatureSelection` to evaluate GSUB/GPOS
 FeatureVariations. Condition sets run in precedence order; the first eligible
 record replaces its feature tables. Unknown future conditions and unsupported
 alternate-table versions fail that record and allow the next one.
@@ -101,8 +101,9 @@ $positioned = (new PositioningEngine())->apply($gpos, $selection, $initial, $def
 ```
 
 Check that `itemVariationStore` exists before constructing an instance. A matched
-VariationIndex without a supplied delta resolver fails explicitly. This support
-does not instantiate `gvar`, HVAR/VVAR/MVAR, CFF2 outlines or a whole variable font.
+VariationIndex without a supplied delta resolver fails explicitly. Layout variation remains separate from [metric instances](variable-metrics.md),
+[TrueType variation](truetype-variations.md) and [CFF2 outlines](cff-outlines.md).
+Those explicit objects do not write a static font file.
 
 ## Run the examples and independent checks
 

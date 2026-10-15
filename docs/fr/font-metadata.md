@@ -51,8 +51,8 @@ haute exclue, 65535 représentant l’infini.
 Les lecteurs contrôlent limites de stockage, tri des identifiants, longueurs
 versionnées et budgets cumulés de chaînes/enregistrements avant copie. Les
 références répétées consomment le budget cumulé même si elles partagent les mêmes
-octets. L’oracle fontTools compare 179 noms et 420 champs OS/2 dans 12 cas de
-fontes, dont les six versions. Les tests natifs couvrent aussi name version 1,
+octets. L’oracle fontTools compare chaque nom et champ OS/2 des fixtures
+originales et des six versions de table. Les tests natifs couvrent aussi name version 1,
 Unicode supplémentaire, OS/2 historique et données invalides.
 
 Sources techniques : [name](https://learn.microsoft.com/en-us/typography/opentype/spec/name)
