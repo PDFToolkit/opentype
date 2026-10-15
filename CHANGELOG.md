@@ -4,6 +4,8 @@ English | [Français](CHANGELOG.fr.md)
 
 ## Unreleased
 
+- Execute bounded CFF/CFF2 Type 2 cubic paths, subroutines, explicit native blends, legacy charsets/encodings and composites; validate against independent fontTools/HarfBuzz geometry.
+
 - Decode bounded loca/glyf outlines and assemble unhinted components with explicit offset policy, cycle/output budgets and quadratic paths; compare all points and drawn geometry with fontTools/HarfBuzz.
 
 - Read vertical metrics and CFF origins; evaluate native HVAR/VVAR/MVAR deltas through explicit instance objects with bounded index maps and independent fontTools/HarfBuzz comparisons.

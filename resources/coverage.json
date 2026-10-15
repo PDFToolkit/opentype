@@ -36,7 +36,10 @@
     "vertical-default-metrics-and-cff-origins",
     "native-hvar-vvar-mvar-delta-evaluation",
     "bounded-truetype-outline-decoding-and-component-assembly",
-    "explicit-quadratic-path-construction"
+    "explicit-quadratic-path-construction",
+    "bounded-cff-cff2-type2-cubic-path-execution",
+    "cff-charsets-encodings-and-explicit-font-matrices",
+    "cff2-charstring-and-private-dictionary-blends"
   ],
   "executionConstraints": {
     "lookupFlags": "all-defined-bits-with-explicit-GDEF",
@@ -105,12 +108,12 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "CFF ": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "partial",
+      "scope": "INDEX/DICT/FDSelect, charset/encodings, explicit FontMatrix and unhinted Type 2 programs including subroutines, arithmetic and deprecated composites; rasterizer hint application and high-level semantics of all DICT metadata excluded"
     },
     "CFF2": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "partial",
+      "scope": "INDEX/DICT/FDSelect, unhinted cubic programs and explicit native variation blends, PrivateDICT blend evaluation; rasterizer hint application excluded"
     },
     "VORG": {
       "status": "implemented",
@@ -251,7 +254,7 @@
   },
   "pendingMechanisms": [
     "outline-variation-and-phantom-point-metric-fallback",
-    "truetype-instruction-execution-and-cff-charstrings",
+    "truetype-instruction-execution-and-cff-rasterizer-hinting",
     "font-collections",
     "woff-and-woff2",
     "font-writing",
