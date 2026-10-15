@@ -58,16 +58,16 @@ final class GsubReaderTest extends TestCase
     }
 
     #[DataProvider('validUnsupportedContexts')]
-    public function testContextualRulesAreRetainedAndTheirExecutionFails(string $subtable, int $type, int $format): void
+    public function testContextualFormatsHaveExecutableTypedModels(string $subtable, int $type, int $format): void
     {
         $table = (new GsubReader())->read(new BinaryView(self::gsub([$subtable], $type)), 16);
-        $unsupported = $table->lookupList->lookups[0]->subtables[0];
-        self::assertInstanceOf(UnsupportedSubstitution::class, $unsupported);
-        self::assertSame($type, $unsupported->type);
-        self::assertSame($format, $unsupported->format);
-        self::assertFalse($unsupported->isSupported());
-        $this->expectException(UnsupportedFontException::class);
-        (new SubstitutionEngine())->apply($table, new FeatureSelection(new Tag('latn'), features: [new Tag('test')]), new GlyphSequence([new GlyphId(1)]));
+        $context = $table->lookupList->lookups[0]->subtables[0];
+        self::assertInstanceOf($type === 8 ? \PDFToolkit\OpenType\Substitution\ReverseChainSingleSubstitution::class : \PDFToolkit\OpenType\Substitution\ContextSubstitution::class, $context);
+        self::assertSame($type, $context->lookupType());
+        if ($type !== 8) {
+            self::assertSame($format, $context->format);
+        }
+        self::assertTrue($context->isSupported());
     }
 
     public static function validUnsupportedContexts(): iterable

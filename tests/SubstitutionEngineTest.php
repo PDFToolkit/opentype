@@ -206,11 +206,10 @@ final class SubstitutionEngineTest extends TestCase
         (new SubstitutionEngine())->apply($table, $this->selection(), $this->sequence([]));
     }
 
-    public function testNonzeroLookupFlagsFailExplicitly(): void
+    public function testNonzeroLookupFlagsWithoutGlyphClassesDoNotInventClasses(): void
     {
         $table = $this->table([new Lookup(1, new LookupFlags(8), [new SingleSubstFormat1(new CoverageFormat1([new GlyphId(1)]), 1)])]);
-        $this->expectException(UnsupportedFontException::class);
-        (new SubstitutionEngine())->apply($table, $this->selection(), $this->sequence([1]));
+        self::assertSame([2], $this->ids((new SubstitutionEngine())->apply($table, $this->selection(), $this->sequence([1]))));
     }
 
     public function testOutputExpansionLimitDoesNotMutateTheInput(): void
@@ -242,8 +241,8 @@ final class SubstitutionEngineTest extends TestCase
             new LookupList([$lookup]),
             16,
         );
-        // 1 requested tag + 100 language indices + 100 lookup indices + one match.
-        self::assertSame([2], $this->ids((new SubstitutionEngine(new ReadLimits(maxSubstitutionOperations: 202)))->apply($table, $this->selection(), $this->sequence([1]))));
+        // 1 requested tag + 100 language indices + 100 lookup indices + execution entry + match.
+        self::assertSame([2], $this->ids((new SubstitutionEngine(new ReadLimits(maxSubstitutionOperations: 203)))->apply($table, $this->selection(), $this->sequence([1]))));
     }
 
     public function testAlternateMembershipSearchConsumesTheOperationBudget(): void

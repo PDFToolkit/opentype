@@ -54,6 +54,20 @@ final readonly class GsubTable
 
             return;
         }
+        if ($subtable instanceof ContextSubstitution) {
+            foreach ($subtable->rules as $rule) {
+                foreach ($rule->lookupRecords as $record) {
+                    if (!isset($this->lookupList->lookups[$record->lookupListIndex])) {
+                        throw new MalformedFontException('A context action refers to an absent lookup.');
+                    }
+                }
+            }
+        }
+        if ($subtable instanceof ReverseChainSingleSubstitution) {
+            foreach ($subtable->substitutes as $glyph) {
+                $this->validateGlyph($glyph->value);
+            }
+        }
         if ($subtable instanceof SingleSubstFormat1 || $subtable instanceof SingleSubstFormat2 || $subtable instanceof MultipleSubstFormat1 || $subtable instanceof AlternateSubstFormat1 || $subtable instanceof LigatureSubstFormat1) {
             foreach ($subtable->coverage->glyphs() as $glyph) {
                 $this->validateGlyph($glyph->value);

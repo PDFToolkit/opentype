@@ -12,12 +12,15 @@ final readonly class GlyphSequence
     public array $glyphs;
     /** @var list<int> */
     public array $clusters;
+    /** @var list<non-empty-list<int>> Source components retained by ligature substitutions. */
+    public array $componentClusters;
 
     /**
      * @param list<GlyphId> $glyphs Logical input order
      * @param list<int>|null $clusters Original input positions; substitutions retain their provenance
+     * @param list<non-empty-list<int>>|null $componentClusters
      */
-    public function __construct(array $glyphs, ?array $clusters = null)
+    public function __construct(array $glyphs, ?array $clusters = null, ?array $componentClusters = null)
     {
         foreach ($glyphs as $glyph) {
             if (!$glyph instanceof GlyphId) {
@@ -36,5 +39,20 @@ final readonly class GlyphSequence
             }
         }
         $this->clusters = array_values($clusters);
+        $componentClusters ??= array_map(fn (int $cluster): array => [$cluster], $this->clusters);
+        if (count($componentClusters) !== count($glyphs)) {
+            throw new \InvalidArgumentException('Each glyph requires source component provenance.');
+        }
+        foreach ($componentClusters as $components) {
+            if ($components === [] || !array_is_list($components)) {
+                throw new \InvalidArgumentException('Component provenance must be a non-empty list.');
+            }
+            foreach ($components as $component) {
+                if (!is_int($component) || $component < 0) {
+                    throw new \InvalidArgumentException('Source components must be non-negative.');
+                }
+            }
+        }
+        $this->componentClusters = array_values($componentClusters);
     }
 }

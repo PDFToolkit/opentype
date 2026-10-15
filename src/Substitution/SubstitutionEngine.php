@@ -7,6 +7,9 @@ namespace PDFToolkit\OpenType\Substitution;
 use PDFToolkit\OpenType\Exception\MalformedFontException;
 use PDFToolkit\OpenType\Exception\UnsupportedFontException;
 use PDFToolkit\OpenType\Layout\Lookup;
+use PDFToolkit\OpenType\Layout\GdefTable;
+use PDFToolkit\OpenType\Layout\ContextMatcher;
+use PDFToolkit\OpenType\Layout\FeatureResolver;
 use PDFToolkit\OpenType\Sfnt\ReadLimits;
 use PDFToolkit\OpenType\Value\GlyphId;
 use PDFToolkit\OpenType\Value\Tag;
@@ -18,7 +21,7 @@ final readonly class SubstitutionEngine
     {
     }
 
-    public function apply(GsubTable $table, FeatureSelection $selection, GlyphSequence $input): GlyphSequence
+    public function apply(GsubTable $table, FeatureSelection $selection, GlyphSequence $input, ?GdefTable $definition = null): GlyphSequence
     {
         if (count($input->glyphs) > $this->limits->maxOutputGlyphs || $table->glyphCount > $this->limits->maxGlyphs) {
             throw new MalformedFontException('The input glyph sequence exceeds the configured limits.');
@@ -29,72 +32,54 @@ final readonly class SubstitutionEngine
             }
         }
         $operations = new LayoutReadBudget($this->limits->maxSubstitutionOperations);
-        $lookups = $this->selectedLookups($table, $selection, $operations);
+        $indices = (new FeatureResolver())->resolve($table->scriptList, $table->featureList, $selection, $operations, $table->featureVariations !== null);
+        $definition ??= new GdefTable();
         $records = new LayoutReadBudget($this->limits->maxLayoutRecords);
-        // Validate every selected lookup before applying any operation.
-        foreach ($lookups as $lookup) {
-            $records->consume(1 + count($lookup->subtables));
-            if ($lookup->lookupFlags->value !== 0) {
-                throw new UnsupportedFontException('Only zero lookup flags are executable; GDEF filtering is not implemented and RIGHT_TO_LEFT is not a GSUB direction selector.');
-            }
-            foreach ($lookup->subtables as $subtable) {
-                $this->preflight($subtable, $selection, $records);
+        $visited = [];
+        foreach ($indices as $index) {
+            $this->preflightLookup($table, $index, $selection, $definition, $records, $visited);
+        }
+        $buffer = new GlyphBuffer($input, $this->limits->maxOutputGlyphs);
+        foreach ($indices as $index) {
+            $lookup = $table->lookupList->lookups[$index];
+            $reverse = $lookup->lookupType === 8 || ($lookup->subtables[0] instanceof ExtensionSubstFormat1 && $lookup->subtables[0]->extensionLookupType === 8);
+            if ($reverse) {
+                for ($position = count($buffer->glyphs) - 1; $position >= 0; --$position) {
+                    $this->applyAt($table, $index, $selection, $buffer, $position, $definition, $operations, 0);
+                }
+            } else {
+                for ($position = 0; $position < count($buffer->glyphs);) {
+                    $next = $this->applyAt($table, $index, $selection, $buffer, $position, $definition, $operations, 0);
+                    $position = $next ?? $position + 1;
+                }
             }
         }
-        $output = $input;
-        foreach ($lookups as $lookup) {
-            $output = $this->applyLookup($lookup, $selection, $output, $operations);
-        }
-
-        return $output;
+        return $buffer->result();
     }
 
-    /** @return list<Lookup> */
-    private function selectedLookups(GsubTable $table, FeatureSelection $selection, LayoutReadBudget $operations): array
+    /** @param array<int, true> $visited */
+    private function preflightLookup(GsubTable $table, int $index, FeatureSelection $selection, GdefTable $definition, LayoutReadBudget $records, array &$visited): void
     {
-        $script = $table->scriptList->script($selection->script);
-        if ($script === null && $selection->fallbackToDefaultScript) {
-            $script = $table->scriptList->script(new Tag('DFLT'));
+        if (isset($visited[$index])) {
+            return;
         }
-        if ($script === null) {
-            return [];
+        $visited[$index] = true;
+        $lookup = $table->lookupList->lookups[$index] ?? throw new MalformedFontException('A context action refers to an absent lookup.');
+        $records->consume(1 + count($lookup->subtables));
+        if ($lookup->lookupFlags->markFilteringSet !== null && !isset($definition->markGlyphSets[$lookup->lookupFlags->markFilteringSet])) {
+            throw new MalformedFontException('A lookup refers to an absent GDEF mark filtering set.');
         }
-        $language = $selection->language === null ? $script->defaultLangSys : $script->language($selection->language);
-        if ($language === null && $selection->fallbackToDefaultLanguage) {
-            $language = $script->defaultLangSys;
-        }
-        if ($language === null) {
-            return [];
-        }
-        $requested = [];
-        foreach ($selection->features as $tag) {
-            $operations->consume(1);
-            $requested[$tag->value] = true;
-        }
-        $indices = $language->requiredFeatureIndex === null ? [] : [$language->requiredFeatureIndex => true];
-        foreach ($language->featureIndices as $index) {
-            $operations->consume(1);
-            if (isset($requested[$table->featureList->featureRecords[$index]->featureTag->value])) {
-                $indices[$index] = true;
+        foreach ($lookup->subtables as $subtable) {
+            $this->preflight($subtable, $selection, $records);
+            $concrete = $subtable instanceof ExtensionSubstFormat1 ? $subtable->extension : $subtable;
+            if ($concrete instanceof ContextSubstitution) {
+                foreach ($concrete->rules as $rule) {
+                    foreach ($rule->lookupRecords as $record) {
+                        $this->preflightLookup($table, $record->lookupListIndex, $selection, $definition, $records, $visited);
+                    }
+                }
             }
         }
-        if ($indices !== [] && $table->featureVariations !== null) {
-            throw new UnsupportedFontException('FeatureVariations evaluation requires an explicit variation model and is not implemented.');
-        }
-        $lookupIndices = [];
-        foreach ($indices as $index => $_) {
-            foreach ($table->featureList->featureRecords[$index]->feature->lookupListIndices as $lookupIndex) {
-                $operations->consume(1);
-                $lookupIndices[$lookupIndex] = true;
-            }
-        }
-        ksort($lookupIndices, SORT_NUMERIC);
-        $lookups = [];
-        foreach ($lookupIndices as $index => $_) {
-            $lookups[] = $table->lookupList->lookups[$index];
-        }
-
-        return $lookups;
     }
 
     private function preflight(SubstitutionSubtable $subtable, FeatureSelection $selection, LayoutReadBudget $records): void
@@ -146,113 +131,130 @@ final readonly class SubstitutionEngine
 
             return;
         }
+        if ($subtable instanceof ContextSubstitution) {
+            $records->consume($subtable->coverage->count());
+            foreach ($subtable->rules as $rule) {
+                $records->consume(count($rule->input) + count($rule->backtrack) + count($rule->lookahead) + count($rule->lookupRecords));
+            }
+            return;
+        }
+        if ($subtable instanceof ReverseChainSingleSubstitution) {
+            $records->consume($subtable->coverage->count() + count($subtable->context->backtrack) + count($subtable->context->lookahead));
+            return;
+        }
         throw new UnsupportedFontException('The selected substitution subtable has no preflight implementation.');
     }
 
-    private function applyLookup(Lookup $lookup, FeatureSelection $selection, GlyphSequence $input, LayoutReadBudget $operations): GlyphSequence
+    private function applyAt(GsubTable $table, int $lookupIndex, FeatureSelection $selection, GlyphBuffer $buffer, int $position, GdefTable $definition, LayoutReadBudget $operations, int $depth): ?int
     {
-        $glyphs = [];
-        $clusters = [];
-        $inputCount = count($input->glyphs);
-        for ($position = 0; $position < $inputCount;) {
-            $match = null;
-            foreach ($lookup->subtables as $subtable) {
-                $operations->consume(1);
-                $match = $this->match($subtable, $selection, $input, $position, $operations);
-                if ($match !== null) {
-                    break;
-                }
-            }
-            if ($match === null) {
-                $this->append($glyphs, $clusters, [$input->glyphs[$position]], $input->clusters[$position]);
-                ++$position;
-            } else {
-                // A ligature carries the earliest cluster of all consumed input glyphs.
-                $cluster = $input->clusters[$position];
-                for ($offset = 1; $offset < $match->consumed; ++$offset) {
-                    $cluster = min($cluster, $input->clusters[$position + $offset]);
-                }
-                $this->append($glyphs, $clusters, $match->replacement, $cluster);
-                $position += $match->consumed;
-            }
+        $operations->consume(1);
+        if ($depth >= $this->limits->maxLookupNesting) {
+            throw new MalformedFontException('Nested contextual lookups exceed the configured depth.');
         }
-
-        return new GlyphSequence($glyphs, $clusters);
-    }
-
-    private function match(SubstitutionSubtable $subtable, FeatureSelection $selection, GlyphSequence $input, int $position, LayoutReadBudget $operations): ?SubstitutionMatch
-    {
-        if ($subtable instanceof ExtensionSubstFormat1) {
-            return $this->match($subtable->extension, $selection, $input, $position, $operations);
-        }
-        $glyph = $input->glyphs[$position];
-        if ($subtable instanceof SingleSubstFormat1 || $subtable instanceof SingleSubstFormat2) {
-            $substitute = $subtable->substitute($glyph);
-
-            return $substitute === null ? null : new SubstitutionMatch(1, [$substitute]);
-        }
-        if ($subtable instanceof MultipleSubstFormat1) {
-            $index = $subtable->coverage->indexOf($glyph);
-
-            return $index === null ? null : new SubstitutionMatch(1, $subtable->sequences[$index]->substituteGlyphIds);
-        }
-        if ($subtable instanceof AlternateSubstFormat1) {
-            $index = $subtable->coverage->indexOf($glyph);
-            if ($index === null) {
-                return null;
-            }
-            $set = $subtable->alternateSets[$index];
-            if ($set->alternateGlyphIds === []) {
-                return null;
-            }
-            $selector = $selection->alternateSelector ?? throw new UnsupportedFontException('An alternate selector is required.');
-            $substitute = $selector->select($glyph, $set);
-            foreach ($set->alternateGlyphIds as $alternate) {
-                $operations->consume(1);
-                if ($alternate->value === $substitute->value) {
-                    return new SubstitutionMatch(1, [$substitute]);
-                }
-            }
-            throw new \InvalidArgumentException('AlternateSelector returned a glyph outside the alternate set.');
-        }
-        if ($subtable instanceof LigatureSubstFormat1) {
-            $index = $subtable->coverage->indexOf($glyph);
-            if ($index === null) {
-                return null;
-            }
-            foreach ($subtable->ligatureSets[$index]->ligatures as $ligature) {
-                $operations->consume(1);
-                $matched = true;
-                foreach ($ligature->componentGlyphIds as $offset => $component) {
-                    $operations->consume(1);
-                    if (!isset($input->glyphs[$position + $offset + 1]) || $input->glyphs[$position + $offset + 1]->value !== $component->value) {
-                        $matched = false;
-                        break;
-                    }
-                }
-                if ($matched) {
-                    return new SubstitutionMatch(1 + count($ligature->componentGlyphIds), [$ligature->ligatureGlyph]);
-                }
-            }
-
+        $lookup = $table->lookupList->lookups[$lookupIndex];
+        if (!isset($buffer->glyphs[$position]) || $definition->ignores($buffer->glyphs[$position], $lookup->lookupFlags)) {
             return null;
         }
-        throw new UnsupportedFontException('The selected substitution subtable has no execution implementation.');
-    }
-
-    /**
-     * @param list<GlyphId> $glyphs
-     * @param list<int> $clusters
-     * @param non-empty-list<GlyphId> $replacement
-     */
-    private function append(array &$glyphs, array &$clusters, array $replacement, int $cluster): void
-    {
-        if (count($replacement) > $this->limits->maxOutputGlyphs - count($glyphs)) {
-            throw new MalformedFontException('Substitution expansion exceeds the output glyph limit.');
+        foreach ($lookup->subtables as $subtable) {
+            $operations->consume(1);
+            $subtable = $subtable instanceof ExtensionSubstFormat1 ? $subtable->extension : $subtable;
+            $glyph = $buffer->glyphs[$position];
+            if ($subtable instanceof ContextSubstitution) {
+                if ($subtable->coverage->indexOf($glyph) === null) {
+                    continue;
+                }
+                foreach ($subtable->rules as $rule) {
+                    $matched = (new ContextMatcher())->match($rule, $buffer->glyphs, $position, $lookup->lookupFlags, $definition, $operations);
+                    if ($matched === null) {
+                        continue;
+                    }
+                    $end = $matched[count($matched) - 1] + 1;
+                    foreach ($rule->lookupRecords as $record) {
+                        $cursor = $position;
+                        $target = $position;
+                        for ($sequence = 0; $sequence <= $record->sequenceIndex; ++$sequence) {
+                            $target = (new ContextMatcher())->next($buffer->glyphs, $cursor, 1, $lookup->lookupFlags, $definition, $operations);
+                            if ($target === null || $target >= $end) {
+                                throw new MalformedFontException('A contextual action index exceeds the current matched input.');
+                            }
+                            $cursor = $target + 1;
+                        }
+                        $before = count($buffer->glyphs);
+                        $this->applyAt($table, $record->lookupListIndex, $selection, $buffer, $target, $definition, $operations, $depth + 1);
+                        $end += count($buffer->glyphs) - $before;
+                    }
+                    return $end > $position ? $end : $position + 1;
+                }
+                continue;
+            }
+            if ($subtable instanceof ReverseChainSingleSubstitution) {
+                $index = $subtable->coverage->indexOf($glyph);
+                if ($index !== null && (new ContextMatcher())->match($subtable->context, $buffer->glyphs, $position, $lookup->lookupFlags, $definition, $operations) !== null) {
+                    $buffer->replace([$position], [$subtable->substitutes[$index]]);
+                    return $position + 1;
+                }
+                continue;
+            }
+            if ($subtable instanceof SingleSubstFormat1 || $subtable instanceof SingleSubstFormat2) {
+                $substitute = $subtable->substitute($glyph);
+                if ($substitute !== null) {
+                    $buffer->replace([$position], [$substitute]);
+                    return $position + 1;
+                }
+                continue;
+            }
+            if ($subtable instanceof MultipleSubstFormat1) {
+                $index = $subtable->coverage->indexOf($glyph);
+                if ($index !== null) {
+                    $replacement = $subtable->sequences[$index]->substituteGlyphIds;
+                    $buffer->replace([$position], $replacement);
+                    return $position + count($replacement);
+                }
+                continue;
+            }
+            if ($subtable instanceof AlternateSubstFormat1) {
+                $index = $subtable->coverage->indexOf($glyph);
+                if ($index === null || $subtable->alternateSets[$index]->alternateGlyphIds === []) {
+                    continue;
+                }
+                $set = $subtable->alternateSets[$index];
+                $selector = $selection->alternateSelector ?? throw new UnsupportedFontException('An alternate selector is required.');
+                $substitute = $selector->select($glyph, $set);
+                $valid = false;
+                foreach ($set->alternateGlyphIds as $alternate) {
+                    $operations->consume(1);
+                    $valid = $valid || $alternate->value === $substitute->value;
+                }
+                if (!$valid) {
+                    throw new \InvalidArgumentException('AlternateSelector returned a glyph outside the alternate set.');
+                }
+                $buffer->replace([$position], [$substitute]);
+                return $position + 1;
+            }
+            if ($subtable instanceof LigatureSubstFormat1) {
+                $index = $subtable->coverage->indexOf($glyph);
+                if ($index === null) {
+                    continue;
+                }
+                foreach ($subtable->ligatureSets[$index]->ligatures as $ligature) {
+                    $operations->consume(1);
+                    $positions = [$position];
+                    $cursor = $position + 1;
+                    foreach ($ligature->componentGlyphIds as $component) {
+                        $cursor = (new ContextMatcher())->next($buffer->glyphs, $cursor, 1, $lookup->lookupFlags, $definition, $operations);
+                        if ($cursor === null || $buffer->glyphs[$cursor]->value !== $component->value) {
+                            continue 2;
+                        }
+                        $positions[] = $cursor;
+                        ++$cursor;
+                    }
+                    $buffer->replace($positions, [$ligature->ligatureGlyph]);
+                    return $position + 1;
+                }
+                continue;
+            }
+            throw new UnsupportedFontException('The selected substitution subtable has no execution implementation.');
         }
-        foreach ($replacement as $glyph) {
-            $glyphs[] = $glyph;
-            $clusters[] = $cluster;
-        }
+        return null;
     }
 }

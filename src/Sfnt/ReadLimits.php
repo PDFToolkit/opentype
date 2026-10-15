@@ -14,6 +14,7 @@ final readonly class ReadLimits
         public int $maxLayoutRecords = 16384,
         public int $maxOutputGlyphs = 262144,
         public int $maxSubstitutionOperations = 1048576,
+        public int $maxLookupNesting = 32,
     ) {
         if ($maxBytes < 1 || $maxBytes > 1073741824
             || $maxTables < 1 || $maxTables > 4095
@@ -21,6 +22,7 @@ final readonly class ReadLimits
             || $maxLayoutRecords < 1 || $maxLayoutRecords > 1048576
             || $maxOutputGlyphs < 1 || $maxOutputGlyphs > 1048576
             || $maxSubstitutionOperations < 1 || $maxSubstitutionOperations > 1073741824
+            || $maxLookupNesting < 1 || $maxLookupNesting > 256
         ) {
             throw new \InvalidArgumentException('OpenType read limits must be positive and within their bounded supported ranges.');
         }

@@ -41,6 +41,7 @@ def main() -> None:
         {"name": "alternate two", "codePoints": [97, 97], "features": ["salt"], "alternate": 2},
         {"name": "multiple substitution", "codePoints": [0xFB01], "features": ["ccmp"]},
         {"name": "extension", "codePoints": [97, 98], "features": ["vrt2"]},
+        {"name": "chained contextual substitution", "codePoints": [97, 98, 97], "features": ["calt"]},
         {"name": "no selected features", "codePoints": [97, 102, 105, 0x1F600], "features": []},
         {"name": "missing feature", "codePoints": [97, 98], "features": ["zzzz"]},
         {"name": "combined independent features", "codePoints": [97, 102, 105], "features": ["liga", "smcp"]},

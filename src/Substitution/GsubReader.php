@@ -26,7 +26,7 @@ use PDFToolkit\OpenType\Sfnt\ReadLimits;
 use PDFToolkit\OpenType\Value\GlyphId;
 use PDFToolkit\OpenType\Value\Tag;
 
-/** GSUB 1.0/1.1 structure reader; contextual rules are validated and retained, not executed. */
+/** Bounded GSUB 1.0/1.1 reader with executable substitution types 1 through 8. */
 final readonly class GsubReader
 {
     public function __construct(private ReadLimits $limits = new ReadLimits())
@@ -47,8 +47,8 @@ final readonly class GsubReader
         $table->bytes(0, $headerSize);
         $budget = new LayoutReadBudget($this->limits->maxLayoutRecords);
         $lookupList = $this->lookups($this->child($table, $table->uint16(8), $headerSize), $glyphCount, $budget);
-        $features = $this->features($this->child($table, $table->uint16(6), $headerSize), $budget);
-        $scripts = $this->scripts($this->child($table, $table->uint16(4), $headerSize), $budget);
+        $features = (new \PDFToolkit\OpenType\Layout\LayoutListsReader())->features($this->child($table, $table->uint16(6), $headerSize), $budget);
+        $scripts = (new \PDFToolkit\OpenType\Layout\LayoutListsReader())->scripts($this->child($table, $table->uint16(4), $headerSize), $budget);
         $variations = null;
         if ($minor === 1 && $table->uint32(10) !== 0) {
             $variations = $this->child($table, $table->uint32(10), $headerSize);
@@ -71,15 +71,6 @@ final readonly class GsubReader
     {
         $budget->consume($count);
         $table->bytes($offset, $count * $width);
-    }
-
-    private function tag(BinaryView $table, int $offset): Tag
-    {
-        try {
-            return new Tag($table->bytes($offset, 4));
-        } catch (\InvalidArgumentException $exception) {
-            throw new MalformedFontException('Invalid OpenType layout tag.', 0, $exception);
-        }
     }
 
     private function glyph(int $id, int $glyphCount): GlyphId
@@ -127,106 +118,6 @@ final readonly class GsubReader
         return new CoverageFormat2($ranges);
     }
 
-    private function scripts(BinaryView $table, LayoutReadBudget $budget): ScriptList
-    {
-        $count = $table->uint16(0);
-        $this->records($table, 2, $count, 6, $budget);
-        $result = [];
-        for ($i = 0; $i < $count; ++$i) {
-            $offset = 2 + 6 * $i;
-            $script = $this->child($table, $table->uint16($offset + 4), 2 + 6 * $count);
-            $langCount = $script->uint16(2);
-            $this->records($script, 4, $langCount, 6, $budget);
-            $default = $script->uint16(0) === 0 ? null : $this->language($this->child($script, $script->uint16(0), 4 + 6 * $langCount), $budget);
-            $languages = [];
-            for ($j = 0; $j < $langCount; ++$j) {
-                $at = 4 + 6 * $j;
-                $languages[] = new LangSysRecord($this->tag($script, $at), $this->language($this->child($script, $script->uint16($at + 4), 4 + 6 * $langCount), $budget));
-            }
-            $result[] = new ScriptRecord($this->tag($table, $offset), new Script($default, $languages));
-        }
-
-        return new ScriptList($result);
-    }
-
-    private function language(BinaryView $table, LayoutReadBudget $budget): LangSys
-    {
-        if ($table->uint16(0) !== 0) {
-            throw new MalformedFontException('LangSys.lookupOrderOffset is reserved and must be null.');
-        }
-        $required = $table->uint16(2);
-        $count = $table->uint16(4);
-        $this->records($table, 6, $count, 2, $budget);
-        $indices = [];
-        for ($i = 0; $i < $count; ++$i) {
-            $indices[] = $table->uint16(6 + 2 * $i);
-        }
-
-        return new LangSys($required === 0xFFFF ? null : $required, $indices);
-    }
-
-    private function features(BinaryView $table, LayoutReadBudget $budget): FeatureList
-    {
-        $count = $table->uint16(0);
-        $this->records($table, 2, $count, 6, $budget);
-        $result = [];
-        for ($i = 0; $i < $count; ++$i) {
-            $offset = 2 + 6 * $i;
-            $tag = $this->tag($table, $offset);
-            $feature = $this->child($table, $table->uint16($offset + 4), 2 + 6 * $count);
-            $result[] = new FeatureRecord($tag, $this->feature($feature, $tag, $budget));
-        }
-
-        return new FeatureList($result);
-    }
-
-    private function feature(BinaryView $table, Tag $tag, LayoutReadBudget $budget): Feature
-    {
-        $count = $table->uint16(2);
-        $this->records($table, 4, $count, 2, $budget);
-        $indices = [];
-        for ($i = 0; $i < $count; ++$i) {
-            $indices[] = $table->uint16(4 + 2 * $i);
-        }
-        $params = $table->uint16(0) === 0 ? null : $this->child($table, $table->uint16(0), 4 + 2 * $count);
-        if ($params !== null) {
-            $this->featureParams($params, $tag, $budget);
-        }
-
-        return new Feature($indices, $params);
-    }
-
-    private function featureParams(BinaryView $table, Tag $tag, LayoutReadBudget $budget): void
-    {
-        if ($tag->value === 'size') {
-            $table->bytes(0, 10);
-
-            return;
-        }
-        if (preg_match('/^ss(?:0[1-9]|1[0-9]|20)$/D', $tag->value) === 1) {
-            $table->bytes(0, 4);
-            if ($table->uint16(0) !== 0) {
-                throw new UnsupportedFontException('Unsupported stylistic-set feature parameters version.');
-            }
-
-            return;
-        }
-        if (preg_match('/^cv(?:0[1-9]|[1-9][0-9])$/D', $tag->value) !== 1) {
-            throw new MalformedFontException('This feature tag does not define feature parameters.');
-        }
-        if ($table->uint16(0) !== 0) {
-            throw new UnsupportedFontException('Unsupported character-variant feature parameters version.');
-        }
-        $count = $table->uint16(12);
-        $this->records($table, 14, $count, 3, $budget);
-        for ($i = 0; $i < $count; ++$i) {
-            $code = $table->uint24(14 + 3 * $i);
-            if ($code > 0x10FFFF || ($code >= 0xD800 && $code <= 0xDFFF)) {
-                throw new MalformedFontException('Feature parameters contain an invalid Unicode scalar.');
-            }
-        }
-    }
-
     private function lookups(BinaryView $table, int $glyphCount, LayoutReadBudget $budget): LookupList
     {
         $count = $table->uint16(0);
@@ -271,10 +162,27 @@ final readonly class GsubReader
 
             return new ExtensionSubstFormat1($extensionType, $this->subtable($this->child($table, $table->uint32(4), 8), $extensionType, $glyphCount, $lookupCount, $budget));
         }
-        if (in_array($type, [5, 6, 8], true)) {
-            $this->validateContext($table, $type, $format, $glyphCount, $lookupCount, $budget);
-
-            return new UnsupportedSubstitution($type, $format, $table);
+        if ($type === 5 || $type === 6) {
+            [$coverage, $rules] = (new \PDFToolkit\OpenType\Layout\LayoutBinaryReader())->context($table, $type === 6, $glyphCount, $lookupCount, $budget);
+            return new ContextSubstitution($type, $format, $coverage, $rules);
+        }
+        if ($type === 8) {
+            if ($format !== 1) {
+                throw new MalformedFontException('Unknown reverse chaining substitution format.');
+            }
+            $at = 4;
+            $backtrack = $this->coverageOffsets($table, $at, $budget);
+            $lookahead = $this->coverageOffsets($table, $at, $budget);
+            $count = $table->uint16($at);
+            $at += 2;
+            $substitutes = $this->glyphArray($table, $at, $count, $glyphCount, $budget);
+            $header = $at + 2 * $count;
+            $coverage = $this->coverage($this->child($table, $table->uint16(2), $header), $glyphCount, $budget);
+            $reader = new \PDFToolkit\OpenType\Layout\LayoutBinaryReader();
+            if ($coverage->count() !== $count) {
+                throw new MalformedFontException('Reverse substitution coverage and substitute counts differ.');
+            }
+            return new ReverseChainSingleSubstitution($coverage, new \PDFToolkit\OpenType\Layout\ContextRule([new \PDFToolkit\OpenType\Layout\CoveredGlyph($coverage)], [], $reader->coveragePredicates($table, $backtrack, $header, $glyphCount, $budget), $reader->coveragePredicates($table, $lookahead, $header, $glyphCount, $budget)), $substitutes);
         }
         if ($type === 1) {
             if ($format === 1) {
@@ -344,106 +252,6 @@ final readonly class GsubReader
         return new LigatureSubstFormat1($coverage, $ligatureSets);
     }
 
-    /** Validate unsupported contextual structures without invoking nested lookups. */
-    private function validateContext(BinaryView $table, int $type, int $format, int $glyphCount, int $lookupCount, LayoutReadBudget $budget): void
-    {
-        if ($format < 1 || $format > ($type === 8 ? 1 : 3)) {
-            throw new MalformedFontException('Unknown contextual substitution format.');
-        }
-        if ($type === 8) {
-            $at = 4;
-            $backtrack = $this->coverageOffsets($table, $at, $budget);
-            $lookahead = $this->coverageOffsets($table, $at, $budget);
-            $count = $table->uint16($at);
-            $at += 2;
-            $this->glyphArray($table, $at, $count, $glyphCount, $budget);
-            $header = $at + 2 * $count;
-            $this->validateCoverageOffsets($table, $backtrack, $header, $glyphCount, $budget);
-            $this->validateCoverageOffsets($table, $lookahead, $header, $glyphCount, $budget);
-            $coverage = $this->coverage($this->child($table, $table->uint16(2), $header), $glyphCount, $budget);
-            if ($coverage->count() !== $count) {
-                throw new MalformedFontException('Reverse substitution and coverage counts differ.');
-            }
-
-            return;
-        }
-        if ($format === 3) {
-            $at = 2;
-            if ($type === 6) {
-                $backtrack = $this->coverageOffsets($table, $at, $budget);
-                $input = $this->coverageOffsets($table, $at, $budget);
-                $lookahead = $this->coverageOffsets($table, $at, $budget);
-                $inputCount = count($input);
-                $recordCount = $table->uint16($at);
-                $at += 2;
-                $header = $at + 4 * $recordCount;
-                $this->validateCoverageOffsets($table, $backtrack, $header, $glyphCount, $budget);
-                $this->validateCoverageOffsets($table, $input, $header, $glyphCount, $budget);
-                $this->validateCoverageOffsets($table, $lookahead, $header, $glyphCount, $budget);
-            } else {
-                $inputCount = $table->uint16(2);
-                $recordCount = $table->uint16(4);
-                $at = 6;
-                $this->records($table, $at, $inputCount, 2, $budget);
-                $header = $at + 2 * $inputCount + 4 * $recordCount;
-                for ($i = 0; $i < $inputCount; ++$i) {
-                    $this->coverage($this->child($table, $table->uint16($at + 2 * $i), $header), $glyphCount, $budget);
-                }
-                $at += 2 * $inputCount;
-            }
-            if ($inputCount < 1) {
-                throw new MalformedFontException('A contextual input sequence cannot be empty.');
-            }
-            $this->lookupRecords($table, $at, $recordCount, $inputCount, $lookupCount, $budget);
-
-            return;
-        }
-        $countAt = $format === 1 ? 4 : ($type === 5 ? 6 : 10);
-        $setCount = $table->uint16($countAt);
-        $arrayAt = $countAt + 2;
-        $this->records($table, $arrayAt, $setCount, 2, $budget);
-        $header = $arrayAt + 2 * $setCount;
-        $coverage = $this->coverage($this->child($table, $table->uint16(2), $header), $glyphCount, $budget);
-        if ($format === 1 && $setCount !== $coverage->count()) {
-            throw new MalformedFontException('Context rule-set and coverage counts differ.');
-        }
-        if ($format === 2) {
-            for ($at = 4; $at < $countAt; $at += 2) {
-                $this->classDefinition($this->child($table, $table->uint16($at), $header), $glyphCount, $budget);
-            }
-        }
-        for ($i = 0; $i < $setCount; ++$i) {
-            $offset = $table->uint16($arrayAt + 2 * $i);
-            if ($offset === 0) {
-                continue;
-            }
-            $set = $this->child($table, $offset, $header);
-            $rules = $set->uint16(0);
-            $this->records($set, 2, $rules, 2, $budget);
-            for ($j = 0; $j < $rules; ++$j) {
-                $rule = $this->child($set, $set->uint16(2 + 2 * $j), 2 + 2 * $rules);
-                $at = 0;
-                if ($type === 6) {
-                    $this->contextValues($rule, $at, 0, $format === 1 ? $glyphCount : null, $budget);
-                    $inputCount = $this->contextValues($rule, $at, 1, $format === 1 ? $glyphCount : null, $budget);
-                    $this->contextValues($rule, $at, 0, $format === 1 ? $glyphCount : null, $budget);
-                    $recordCount = $rule->uint16($at);
-                    $at += 2;
-                } else {
-                    $inputCount = $rule->uint16(0);
-                    $recordCount = $rule->uint16(2);
-                    $at = 4;
-                    if ($inputCount < 1) {
-                        throw new MalformedFontException('A contextual input sequence cannot be empty.');
-                    }
-                    $this->contextArray($rule, $at, $inputCount - 1, $format === 1 ? $glyphCount : null, $budget);
-                    $at += 2 * ($inputCount - 1);
-                }
-                $this->lookupRecords($rule, $at, $recordCount, $inputCount, $lookupCount, $budget);
-            }
-        }
-    }
-
     /** @return list<int> */
     private function coverageOffsets(BinaryView $table, int &$at, LayoutReadBudget $budget): array
     {
@@ -457,78 +265,6 @@ final readonly class GsubReader
         $at += 2 * $count;
 
         return $offsets;
-    }
-
-    /** @param list<int> $offsets */
-    private function validateCoverageOffsets(BinaryView $table, array $offsets, int $minimum, int $glyphCount, LayoutReadBudget $budget): void
-    {
-        foreach ($offsets as $offset) {
-            $this->coverage($this->child($table, $offset, $minimum), $glyphCount, $budget);
-        }
-    }
-
-    private function contextValues(BinaryView $table, int &$at, int $implicit, ?int $glyphCount, LayoutReadBudget $budget): int
-    {
-        $count = $table->uint16($at);
-        $at += 2;
-        if ($count < $implicit) {
-            throw new MalformedFontException('A contextual input sequence cannot be empty.');
-        }
-        $this->contextArray($table, $at, $count - $implicit, $glyphCount, $budget);
-        $at += 2 * ($count - $implicit);
-
-        return $count;
-    }
-
-    private function contextArray(BinaryView $table, int $at, int $count, ?int $glyphCount, LayoutReadBudget $budget): void
-    {
-        $this->records($table, $at, $count, 2, $budget);
-        if ($glyphCount !== null) {
-            for ($i = 0; $i < $count; ++$i) {
-                $this->glyph($table->uint16($at + 2 * $i), $glyphCount);
-            }
-        }
-    }
-
-    private function lookupRecords(BinaryView $table, int $offset, int $count, int $inputCount, int $lookupCount, LayoutReadBudget $budget): void
-    {
-        $this->records($table, $offset, $count, 4, $budget);
-        for ($i = 0; $i < $count; ++$i) {
-            // Later indices address the sequence after preceding nested substitutions,
-            // which can expand it; their dynamic bounds require contextual execution.
-            if (($i === 0 && $table->uint16($offset + 4 * $i) >= $inputCount) || $table->uint16($offset + 4 * $i + 2) >= $lookupCount) {
-                throw new MalformedFontException('A contextual lookup record refers outside its input or lookup list.');
-            }
-        }
-    }
-
-    private function classDefinition(BinaryView $table, int $glyphCount, LayoutReadBudget $budget): void
-    {
-        $format = $table->uint16(0);
-        if ($format === 1) {
-            $start = $table->uint16(2);
-            $count = $table->uint16(4);
-            $this->records($table, 6, $count, 2, $budget);
-            if ($start + $count > $glyphCount) {
-                throw new MalformedFontException('A class definition exceeds maxp.numGlyphs.');
-            }
-
-            return;
-        }
-        if ($format !== 2) {
-            throw new MalformedFontException('Unknown class-definition format.');
-        }
-        $count = $table->uint16(2);
-        $this->records($table, 4, $count, 6, $budget);
-        $previousEnd = -1;
-        for ($i = 0; $i < $count; ++$i) {
-            $start = $table->uint16(4 + 6 * $i);
-            $end = $table->uint16(6 + 6 * $i);
-            if ($start <= $previousEnd || $start > $end || $end >= $glyphCount) {
-                throw new MalformedFontException('Class-definition ranges are unordered, overlapping or outside maxp.numGlyphs.');
-            }
-            $previousEnd = $end;
-        }
     }
 
     /** Validate variation offsets and references; variation evaluation remains explicitly unsupported. */
@@ -575,7 +311,7 @@ final readonly class GsubReader
                 }
                 $previous = $featureIndex;
                 $alternate = $this->child($substitutions, $substitutions->uint32($recordAt + 2), 6 + 6 * $subCount);
-                $alternateFeature = $this->feature($alternate, $features->featureRecords[$featureIndex]->featureTag, $budget);
+                $alternateFeature = (new \PDFToolkit\OpenType\Layout\LayoutListsReader())->feature($alternate, $features->featureRecords[$featureIndex]->featureTag, $budget);
                 foreach ($alternateFeature->lookupListIndices as $lookupIndex) {
                     if ($lookupIndex >= $lookupCount) {
                         throw new MalformedFontException('A variation feature refers to an absent lookup.');
