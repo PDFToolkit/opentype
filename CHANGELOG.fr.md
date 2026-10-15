@@ -4,6 +4,8 @@
 
 ## À paraître
 
+- Compléter les modèles head/hhea/maxp/post, les recommandations gasp versionnées et les valeurs d’axes STAT 1.0–1.2 avec correspondance explicite ; comparer chaque champ à fontTools.
+
 - Évaluer les tuples gvar/cvar natifs, interpoler les deltas de contours omis et varier les composites imbriqués avec métriques fantômes explicites, USE_MY_METRICS et attachement fantôme ; conserver les fractions du CVT non mis à l’échelle.
 
 - Exécuter les tracés cubiques Type 2 CFF/CFF2 bornés, sous-programmes, blends natifs explicites, charsets/encodages historiques et composites ; comparer la géométrie à fontTools/HarfBuzz.

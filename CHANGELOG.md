@@ -4,6 +4,8 @@ English | [Français](CHANGELOG.fr.md)
 
 ## Unreleased
 
+- Complete head/hhea/maxp/post models, versioned gasp recommendations and STAT 1.0–1.2 axis values with explicit matching; compare every field against fontTools.
+
 - Evaluate native gvar/cvar tuples, infer sparse contour deltas and vary nested composites with explicit phantom metrics, USE_MY_METRICS and phantom attachment; retain unscaled CVT fractions.
 
 - Execute bounded CFF/CFF2 Type 2 cubic paths, subroutines, explicit native blends, legacy charsets/encodings and composites; validate against independent fontTools/HarfBuzz geometry.

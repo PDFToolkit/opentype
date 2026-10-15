@@ -4,7 +4,7 @@
     "name": "OpenType",
     "version": "1.9.1",
     "url": "https://learn.microsoft.com/en-us/typography/opentype/spec/",
-    "reviewDate": "2026-10-14"
+    "reviewDate": "2026-10-15"
   },
   "packageVersion": "0.2.0",
   "completeSpecificationImplemented": false,
@@ -42,7 +42,10 @@
     "cff2-charstring-and-private-dictionary-blends",
     "native-gvar-contour-interpolation-and-composite-variation",
     "explicit-phantom-metrics-and-component-attachment",
-    "native-cvar-design-value-interpolation"
+    "native-cvar-design-value-interpolation",
+    "complete-head-hhea-maxp-post-metadata",
+    "explicit-gasp-range-recommendations",
+    "stat-axes-value-formats-1-through-4-and-explicit-matching"
   ],
   "executionConstraints": {
     "lookupFlags": "all-defined-bits-with-explicit-GDEF",
@@ -59,20 +62,20 @@
       "scope": "Unicode formats 4 and 12; variation sequences format 14"
     },
     "head": {
-      "status": "partial",
-      "scope": "Version, checksum adjustment, magic and unitsPerEm; remaining fields retained as bytes"
+      "status": "implemented",
+      "scope": "Version 1.0 complete immutable field model including signed 64-bit dates and declared bounds; bounds of non-default instances derived separately"
     },
     "hhea": {
-      "status": "partial",
-      "scope": "Version, metricDataFormat and numberOfHMetrics; remaining fields retained as bytes"
+      "status": "implemented",
+      "scope": "Version 1.0 complete metrics/caret/count model with reserved fields checked"
     },
     "hmtx": {
       "status": "implemented",
       "scope": "Horizontal advances and left side bearings, including repeated final advance"
     },
     "maxp": {
-      "status": "partial",
-      "scope": "Version and numGlyphs; remaining fields retained as bytes"
+      "status": "implemented",
+      "scope": "Versions 0.5/1.0 complete declared profile fields; declarations do not replace application resource budgets or validate every instruction"
     },
     "name": {
       "status": "implemented",
@@ -83,8 +86,8 @@
       "scope": "Versions 0\u20135 all fields including legacy 68-byte v0, versioned embedding semantics and optical ranges; declared coverage is not glyph coverage, MVAR adjustment separate"
     },
     "post": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Versions 1/2/2.5/3 headers and native standard/indexed/offset glyph names or explicit absent names; MVAR adjustment separate"
     },
     "cvt ": {
       "status": "implemented",
@@ -107,8 +110,8 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "gasp": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Versions 0/1 native ordered ppem recommendation lookup; MVAR threshold adjustment and actual rasterization separate"
     },
     "CFF ": {
       "status": "partial",
@@ -199,8 +202,8 @@
       "scope": "Version 1.0 complete value records and native tagged deltas; explicit default-metric adjustment without hidden mutation"
     },
     "STAT": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Versions 1.0/1.1/1.2 all axis/value formats, flags, links and explicit coordinate matching; locale/name projection policy remains application-supplied"
     },
     "VVAR": {
       "status": "implemented",
