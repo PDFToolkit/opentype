@@ -86,6 +86,14 @@ final class VariationTest extends TestCase
         self::assertSame([0], $variations->evaluate($base, new NormalizedCoordinates([0.499]), new LayoutReadBudget(100))->featureRecords[0]->feature->lookupListIndices);
     }
 
+    public function testNormalizedCoordinatesUseTheRequiredSigned214Precision(): void
+    {
+        $coordinates = new NormalizedCoordinates([0.499999, -0.499999, -1.0 / 32768]);
+        self::assertSame([0.5, -0.5, 0.0], $coordinates->values);
+        self::assertTrue((new VariationCondition(0, 0.5, 1))->matches($coordinates));
+        self::assertTrue((new VariationCondition(1, -1, -0.5))->matches($coordinates));
+    }
+
     public function testEveryTruncatedVariableLayoutTableIsRejected(): void
     {
         $font = (new SfntReader())->read(file_get_contents(__DIR__.'/fixtures/ToolkitVariable.ttf'));
