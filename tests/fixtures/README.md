@@ -39,3 +39,6 @@ exactly at seven normalized instances.
 `ToolkitAxes.ttf` extends the original variable layout fixture with asymmetric
 `wght`, `wdth` axes in that font order, named-instance records and avar 1.0 maps.
 It is reproduced by `tools/build_axis_fixture.py` under the same fixture licence.
+
+`ToolkitMetricVariations.ttf` adds original vhea/vmtx and HVAR/VVAR/MVAR data
+to ToolkitAxes. Reproduce it with `tools/build_metric_variation_fixture.py`.

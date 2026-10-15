@@ -41,6 +41,7 @@ jobs:
           python tools/build_advanced_layout_fixture.py --check
           python tools/build_variation_fixture.py --check
           python tools/build_axis_fixture.py --check
+          python tools/build_metric_variation_fixture.py --check
       - name: Compare font interpretation with fontTools
         run: python tools/validate_font_model.py --php php tests/fixtures/ToolkitLayout.ttf tests/fixtures/ToolkitUnicode.ttf tests/fixtures/ToolkitUnicode.otf tests/fixtures/ToolkitAdvanced.ttf tests/fixtures/ToolkitVariable.ttf
       - name: Compare supported glyph substitutions with HarfBuzz
@@ -53,6 +54,8 @@ jobs:
         run: python tools/validate_axes.py --php php
       - name: Compare every metadata field with fontTools
         run: python tools/validate_metadata.py --php php
+      - name: Compare vertical and variable metrics with fontTools and HarfBuzz
+        run: python tools/validate_metric_variations.py --php php
       - name: Run the documented example
         run: |
           php examples/substitution.php

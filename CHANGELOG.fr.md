@@ -4,6 +4,8 @@
 
 ## À paraître
 
+- Lire métriques verticales et origines CFF ; évaluer les deltas HVAR/VVAR/MVAR natifs par instances explicites, correspondances d’indices bornées et comparaisons fontTools/HarfBuzz indépendantes.
+
 - Modéliser name versions 0/1 avec enregistrements multilingues exacts et décodeurs explicites ; exposer tous les champs OS/2 versions 0–5, droits d’incorporation versionnés et plages optiques.
 
 - Lire fvar/avar 1.0 par objets immuables d’axes et d’instances nommées, sélection utilisateur explicite, normalisation bornée et contrôles indépendants fontTools/HarfBuzz sur deux axes.

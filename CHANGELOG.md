@@ -4,6 +4,8 @@ English | [Français](CHANGELOG.fr.md)
 
 ## Unreleased
 
+- Read vertical metrics and CFF origins; evaluate native HVAR/VVAR/MVAR deltas through explicit instance objects with bounded index maps and independent fontTools/HarfBuzz comparisons.
+
 - Model name versions 0/1 with exact multilingual records and explicit decoders; expose every OS/2 version 0–5 field, version-specific embedding flags and optical ranges.
 
 - Read fvar/avar 1.0 with immutable axis and named-instance objects, explicit user selection, bounded normalization and independent two-axis fontTools/HarfBuzz checks.

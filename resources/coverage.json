@@ -32,7 +32,9 @@
     "bounded-nested-lookup-and-attachment-graphs",
     "user-axis-selection-and-fvar-avar-1-normalization",
     "complete-name-record-model-with-explicit-decoding",
-    "versioned-os2-metadata-and-embedding-flags"
+    "versioned-os2-metadata-and-embedding-flags",
+    "vertical-default-metrics-and-cff-origins",
+    "native-hvar-vvar-mvar-delta-evaluation"
   ],
   "executionConstraints": {
     "lookupFlags": "all-defined-bits-with-explicit-GDEF",
@@ -109,8 +111,8 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "VORG": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 1.0 default and sparse CFF/CFF2 origins; explicitly unusable for TrueType"
     },
     "SVG ": {
       "status": "pending",
@@ -181,20 +183,20 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "HVAR": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 1.0 native advance and optional bearing deltas; explicit instance, implicit/mapped indices, absent bearing data remains null"
     },
     "MVAR": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 1.0 complete value records and native tagged deltas; explicit default-metric adjustment without hidden mutation"
     },
     "STAT": {
       "status": "pending",
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "VVAR": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 1.0 native advance, optional bearing and vertical-origin deltas; explicit instance and absent-data semantics"
     },
     "COLR": {
       "status": "pending",
@@ -237,16 +239,16 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "vhea": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Versions 1.0/1.1 complete header model and versioned field meanings"
     },
     "vmtx": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Vertical advances and top side bearings including repeated final advance"
     }
   },
   "pendingMechanisms": [
-    "outline-and-metric-variation",
+    "outline-variation-and-phantom-point-metric-fallback",
     "outlines-and-instruction-execution",
     "font-collections",
     "woff-and-woff2",
