@@ -19,6 +19,7 @@ final readonly class FeatureSelection
         public ?AlternateSelector $alternateSelector = null,
         public bool $fallbackToDefaultScript = true,
         public bool $fallbackToDefaultLanguage = true,
+        public ?\PDFToolkit\OpenType\Variation\NormalizedCoordinates $coordinates = null,
     ) {
         foreach ($features as $tag) {
             if (!$tag instanceof Tag) {

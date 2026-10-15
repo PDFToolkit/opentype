@@ -61,13 +61,7 @@ final readonly class GposReader
                 $lookups[] = new PositioningLookup($type, new LookupFlags($flags, ($flags & 16) !== 0 ? $lookup->uint16(6 + 2 * $subCount) : null), $subtables);
             }
             $variations = $minor === 1 && $table->uint32(10) !== 0 ? $this->reader->child($table, $table->uint32(10), $header) : null;
-            if ($variations !== null) {
-                // Feature variations cannot be silently ignored when a selected feature exists.
-                $variations->bytes(0, 8);
-                if ($variations->uint16(0) !== 1 || $variations->uint16(2) !== 0) {
-                    throw new UnsupportedFontException('Unsupported GPOS FeatureVariations version.');
-                }
-            }
+            $variations = $variations === null ? null : (new \PDFToolkit\OpenType\Variation\FeatureVariationsReader())->read($variations, $features, count($lookups), $budget);
             return new GposTable($scripts, $features, $lookups, $glyphCount, $variations);
         } catch (\InvalidArgumentException $exception) {
             throw new MalformedFontException('Invalid GPOS object dimensions.', 0, $exception);
@@ -86,35 +80,6 @@ final readonly class GposReader
         return $width;
     }
 
-    private function device(BinaryView $parent, int $offset, int $minimum, LayoutReadBudget $budget): DeviceAdjustment|VariationIndex|null
-    {
-        if ($offset === 0) {
-            return null;
-        }
-        $table = $this->reader->child($parent, $offset, $minimum);
-        $start = $table->uint16(0);
-        $end = $table->uint16(2);
-        $format = $table->uint16(4);
-        if ($format === 0x8000) {
-            return new VariationIndex($start, $end);
-        }
-        if ($format < 1 || $format > 3 || $end < $start) {
-            throw new MalformedFontException('Invalid GPOS device table.');
-        }
-        $bits = 1 << $format;
-        $count = $end - $start + 1;
-        $perWord = intdiv(16, $bits);
-        $this->reader->records($table, 6, intdiv($count + $perWord - 1, $perWord), 2, $budget);
-        $budget->consume($count);
-        $deltas = [];
-        for ($i = 0; $i < $count; ++$i) {
-            $word = $table->uint16(6 + 2 * intdiv($i, $perWord));
-            $value = ($word >> (16 - $bits * (($i % $perWord) + 1))) & ((1 << $bits) - 1);
-            $deltas[] = $value >= (1 << ($bits - 1)) ? $value - (1 << $bits) : $value;
-        }
-        return new DeviceAdjustment($start, $deltas);
-    }
-
     private function value(BinaryView $parent, int &$at, int $format, int $minimum, LayoutReadBudget $budget): ValueRecord
     {
         $this->formatWidth($format);
@@ -127,7 +92,7 @@ final readonly class GposReader
             if ($i < 4) {
                 $values[$i] = $parent->int16($at);
             } else {
-                $adjustments[$i - 4] = $this->device($parent, $parent->uint16($at), $minimum, $budget);
+                $adjustments[$i - 4] = (new AdjustmentReader())->read($parent, $parent->uint16($at), $minimum, $budget);
             }
             $at += 2;
         }
@@ -147,7 +112,7 @@ final readonly class GposReader
         return match ($format) {
             1 => new Anchor($x, $y),
             2 => new Anchor($x, $y, $table->uint16(6)),
-            3 => new Anchor($x, $y, null, $this->device($table, $table->uint16(6), 10, $budget), $this->device($table, $table->uint16(8), 10, $budget)),
+            3 => new Anchor($x, $y, null, (new AdjustmentReader())->read($table, $table->uint16(6), 10, $budget), (new AdjustmentReader())->read($table, $table->uint16(8), 10, $budget)),
             default => throw new MalformedFontException('Unknown GPOS anchor format.'),
         };
     }

@@ -19,7 +19,7 @@ final readonly class GsubTable
         public LookupList $lookupList,
         public int $glyphCount,
         public int $minorVersion = 0,
-        public ?BinaryView $featureVariations = null,
+        public \PDFToolkit\OpenType\Variation\FeatureVariations|BinaryView|null $featureVariations = null,
     ) {
         if ($glyphCount < 1 || $glyphCount > 65535 || !in_array($minorVersion, [0, 1], true) || ($minorVersion === 0 && $featureVariations !== null)) {
             throw new MalformedFontException('Invalid GSUB version or glyph count.');

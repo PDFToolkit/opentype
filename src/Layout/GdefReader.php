@@ -10,7 +10,7 @@ use PDFToolkit\OpenType\Exception\UnsupportedFontException;
 use PDFToolkit\OpenType\Sfnt\ReadLimits;
 use PDFToolkit\OpenType\Substitution\LayoutReadBudget;
 
-/** Reads the GDEF classifications used by layout filtering, without implicit font access. */
+/** Bounded GDEF classifications, attachment points, ligature carets and item variation data. */
 final readonly class GdefReader
 {
     public function __construct(private ReadLimits $limits = new ReadLimits())
@@ -44,8 +44,67 @@ final readonly class GdefReader
                 $sets[] = $reader->coverage($reader->child($markSets, $markSets->uint32(4 + 4 * $i), 4 + 4 * $count), $glyphCount, $budget);
             }
         }
-        // Optional attachment, caret and variation tables are outside classification execution.
-        // Their presence remains observable through the source SFNT table.
-        return new GdefTable($glyphClasses, $markClasses, $sets);
+        $points = $table->uint16(6) === 0 ? [] : $this->attachList($reader->child($table, $table->uint16(6), $header), $glyphCount, $budget, $reader);
+        $carets = $table->uint16(8) === 0 ? [] : $this->caretList($reader->child($table, $table->uint16(8), $header), $glyphCount, $budget, $reader);
+        $store = $minor === 3 && $table->uint32(14) !== 0 ? (new \PDFToolkit\OpenType\Variation\ItemVariationStoreReader())->read($reader->child($table, $table->uint32(14), $header), $budget) : null;
+        return new GdefTable($glyphClasses, $markClasses, $sets, $points, $carets, $store);
+    }
+
+    /** @return array<int, list<int>> */
+    private function attachList(BinaryView $table, int $glyphCount, LayoutReadBudget $budget, LayoutBinaryReader $reader): array
+    {
+        $count = $table->uint16(2);
+        $reader->records($table, 4, $count, 2, $budget);
+        $coverage = $reader->coverage($reader->child($table, $table->uint16(0), 4 + 2 * $count), $glyphCount, $budget);
+        if ($coverage->count() !== $count) {
+            throw new MalformedFontException('GDEF attachment coverage and point-list counts differ.');
+        }
+        $points = [];
+        foreach ($coverage->glyphs() as $index => $glyph) {
+            $record = $reader->child($table, $table->uint16(4 + 2 * $index), 4 + 2 * $count);
+            $n = $record->uint16(0);
+            $reader->records($record, 2, $n, 2, $budget);
+            $values = [];
+            $previous = -1;
+            for ($i = 0; $i < $n; ++$i) {
+                $value = $record->uint16(2 + 2 * $i);
+                if ($value <= $previous) {
+                    throw new MalformedFontException('GDEF attachment point indices must be ordered and unique.');
+                }
+                $previous = $value;
+                $values[] = $value;
+            }
+            $points[$glyph->value] = $values;
+        }
+        return $points;
+    }
+
+    /** @return array<int, list<CaretValue>> */
+    private function caretList(BinaryView $table, int $glyphCount, LayoutReadBudget $budget, LayoutBinaryReader $reader): array
+    {
+        $count = $table->uint16(2);
+        $reader->records($table, 4, $count, 2, $budget);
+        $coverage = $reader->coverage($reader->child($table, $table->uint16(0), 4 + 2 * $count), $glyphCount, $budget);
+        if ($coverage->count() !== $count) {
+            throw new MalformedFontException('GDEF caret coverage and ligature counts differ.');
+        }
+        $carets = [];
+        foreach ($coverage->glyphs() as $index => $glyph) {
+            $record = $reader->child($table, $table->uint16(4 + 2 * $index), 4 + 2 * $count);
+            $n = $record->uint16(0);
+            $reader->records($record, 2, $n, 2, $budget);
+            $values = [];
+            for ($i = 0; $i < $n; ++$i) {
+                $caret = $reader->child($record, $record->uint16(2 + 2 * $i), 2 + 2 * $n);
+                $values[] = match ($caret->uint16(0)) {
+                    1 => new CaretValue($caret->int16(2)),
+                    2 => new CaretValue(caretValuePointIndex: $caret->uint16(2)),
+                    3 => new CaretValue($caret->int16(2), adjustment: (new \PDFToolkit\OpenType\Positioning\AdjustmentReader())->read($caret, $caret->uint16(4), 6, $budget)),
+                    default => throw new MalformedFontException('Unknown GDEF caret format.'),
+                };
+            }
+            $carets[$glyph->value] = $values;
+        }
+        return $carets;
     }
 }

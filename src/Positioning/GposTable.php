@@ -12,7 +12,7 @@ use PDFToolkit\OpenType\Layout\ScriptList;
 final readonly class GposTable
 {
     /** @param list<PositioningLookup> $lookups */
-    public function __construct(public ScriptList $scriptList, public FeatureList $featureList, public array $lookups, public int $glyphCount, public ?BinaryView $featureVariations = null)
+    public function __construct(public ScriptList $scriptList, public FeatureList $featureList, public array $lookups, public int $glyphCount, public \PDFToolkit\OpenType\Variation\FeatureVariations|BinaryView|null $featureVariations = null)
     {
         if ($glyphCount < 1 || $glyphCount > 65535) {
             throw new MalformedFontException('Invalid positioning glyph count.');

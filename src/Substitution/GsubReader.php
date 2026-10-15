@@ -51,8 +51,7 @@ final readonly class GsubReader
         $scripts = (new \PDFToolkit\OpenType\Layout\LayoutListsReader())->scripts($this->child($table, $table->uint16(4), $headerSize), $budget);
         $variations = null;
         if ($minor === 1 && $table->uint32(10) !== 0) {
-            $variations = $this->child($table, $table->uint32(10), $headerSize);
-            $this->featureVariations($variations, $features, count($lookupList->lookups), $budget);
+            $variations = (new \PDFToolkit\OpenType\Variation\FeatureVariationsReader())->read($this->child($table, $table->uint32(10), $headerSize), $features, count($lookupList->lookups), $budget);
         }
 
         return new GsubTable($scripts, $features, $lookupList, $glyphCount, $minor, $variations);
@@ -267,57 +266,4 @@ final readonly class GsubReader
         return $offsets;
     }
 
-    /** Validate variation offsets and references; variation evaluation remains explicitly unsupported. */
-    private function featureVariations(BinaryView $table, FeatureList $features, int $lookupCount, LayoutReadBudget $budget): void
-    {
-        if ($table->uint16(0) !== 1 || $table->uint16(2) !== 0) {
-            throw new UnsupportedFontException('Unsupported FeatureVariations version.');
-        }
-        $count = $table->uint32(4);
-        $this->records($table, 8, $count, 8, $budget);
-        for ($i = 0; $i < $count; ++$i) {
-            $at = 8 + 8 * $i;
-            $conditionOffset = $table->uint32($at);
-            if ($conditionOffset !== 0) {
-                $conditions = $this->child($table, $conditionOffset, 8 + 8 * $count);
-                $conditionCount = $conditions->uint16(0);
-                $this->records($conditions, 2, $conditionCount, 4, $budget);
-                for ($j = 0; $j < $conditionCount; ++$j) {
-                    $condition = $this->child($conditions, $conditions->uint32(2 + 4 * $j), 2 + 4 * $conditionCount);
-                    if ($condition->uint16(0) !== 1) {
-                        throw new UnsupportedFontException('Unsupported feature-variation condition format.');
-                    }
-                    if ($condition->int16(4) > $condition->int16(6) || $condition->int16(4) < -16384 || $condition->int16(6) > 16384) {
-                        throw new MalformedFontException('A variation condition has an invalid normalized range.');
-                    }
-                }
-            }
-            $substitutionOffset = $table->uint32($at + 4);
-            if ($substitutionOffset === 0) {
-                continue;
-            }
-            $substitutions = $this->child($table, $substitutionOffset, 8 + 8 * $count);
-            if ($substitutions->uint16(0) !== 1 || $substitutions->uint16(2) !== 0) {
-                throw new UnsupportedFontException('Unsupported FeatureTableSubstitution version.');
-            }
-            $subCount = $substitutions->uint16(4);
-            $this->records($substitutions, 6, $subCount, 6, $budget);
-            $previous = -1;
-            for ($j = 0; $j < $subCount; ++$j) {
-                $recordAt = 6 + 6 * $j;
-                $featureIndex = $substitutions->uint16($recordAt);
-                if ($featureIndex >= count($features->featureRecords) || $featureIndex <= $previous) {
-                    throw new MalformedFontException('Feature substitutions refer to absent or unordered features.');
-                }
-                $previous = $featureIndex;
-                $alternate = $this->child($substitutions, $substitutions->uint32($recordAt + 2), 6 + 6 * $subCount);
-                $alternateFeature = (new \PDFToolkit\OpenType\Layout\LayoutListsReader())->feature($alternate, $features->featureRecords[$featureIndex]->featureTag, $budget);
-                foreach ($alternateFeature->lookupListIndices as $lookupIndex) {
-                    if ($lookupIndex >= $lookupCount) {
-                        throw new MalformedFontException('A variation feature refers to an absent lookup.');
-                    }
-                }
-            }
-        }
-    }
 }

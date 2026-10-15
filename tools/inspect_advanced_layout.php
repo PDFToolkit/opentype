@@ -10,6 +10,9 @@ use PDFToolkit\OpenType\Positioning\GposReader;
 use PDFToolkit\OpenType\Positioning\GlyphPosition;
 use PDFToolkit\OpenType\Positioning\PositionedGlyphSequence;
 use PDFToolkit\OpenType\Positioning\PositioningEngine;
+use PDFToolkit\OpenType\Positioning\PositioningContext;
+use PDFToolkit\OpenType\Variation\NormalizedCoordinates;
+use PDFToolkit\OpenType\Variation\VariationInstance;
 use PDFToolkit\OpenType\Sfnt\SfntReader;
 use PDFToolkit\OpenType\Substitution\FeatureSelection;
 use PDFToolkit\OpenType\Substitution\GlyphSequence;
@@ -33,11 +36,13 @@ $gsub = (new GsubReader())->read($font->table(new Tag('GSUB')), $font->glyphCoun
 $gpos = (new GposReader())->read($font->table(new Tag('GPOS')), $font->glyphCount());
 $cases = [];
 foreach (json_decode(stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERROR) as $case) {
-    $selection = new FeatureSelection(new Tag('latn'), features: array_map(fn (string $tag): Tag => new Tag($tag), $case['features']));
+    $coordinates = isset($case['coordinates']) ? new NormalizedCoordinates($case['coordinates']) : null;
+    $selection = new FeatureSelection(new Tag('latn'), features: array_map(fn (string $tag): Tag => new Tag($tag), $case['features']), coordinates: $coordinates);
     $sequence = new GlyphSequence(array_map(fn (int $code): GlyphId => $cmap->glyphFor(new CodePoint($code)), $case['codePoints']));
     $sequence = (new SubstitutionEngine())->apply($gsub, $selection, $sequence, $definition);
     $positions = array_map(fn (GlyphId $glyph): GlyphPosition => new GlyphPosition($metrics->advanceWidth($glyph)), $sequence->glyphs);
-    $positioned = (new PositioningEngine())->apply($gpos, $selection, new PositionedGlyphSequence($sequence, $positions), $definition);
+    $context = new PositioningContext($metrics->unitsPerEm, $case['pixelsPerEm'] ?? null, $coordinates !== null && $definition->itemVariationStore !== null ? new VariationInstance($definition->itemVariationStore, $coordinates) : null);
+    $positioned = (new PositioningEngine())->apply($gpos, $selection, new PositionedGlyphSequence($sequence, $positions), $definition, $context);
     $x = $y = 0.0;
     $origins = [];
     $values = [];

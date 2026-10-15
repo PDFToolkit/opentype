@@ -33,7 +33,7 @@ final readonly class PositioningEngine
         }
         $definition ??= new GdefTable();
         $budget = new LayoutReadBudget($this->limits->maxSubstitutionOperations);
-        $indices = (new FeatureResolver())->resolve($table->scriptList, $table->featureList, $selection, $budget, $table->featureVariations !== null);
+        $indices = (new FeatureResolver())->resolve($table->scriptList, $table->featureList, $selection, $budget, $table->featureVariations);
         $visited = [];
         foreach ($indices as $index) {
             $this->preflight($table, $index, $definition, $budget, $visited);

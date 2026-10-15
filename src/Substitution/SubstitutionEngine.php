@@ -32,7 +32,7 @@ final readonly class SubstitutionEngine
             }
         }
         $operations = new LayoutReadBudget($this->limits->maxSubstitutionOperations);
-        $indices = (new FeatureResolver())->resolve($table->scriptList, $table->featureList, $selection, $operations, $table->featureVariations !== null);
+        $indices = (new FeatureResolver())->resolve($table->scriptList, $table->featureList, $selection, $operations, $table->featureVariations);
         $definition ??= new GdefTable();
         $records = new LayoutReadBudget($this->limits->maxLayoutRecords);
         $visited = [];

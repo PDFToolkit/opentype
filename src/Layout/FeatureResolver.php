@@ -11,7 +11,7 @@ use PDFToolkit\OpenType\Value\Tag;
 final readonly class FeatureResolver
 {
     /** @return list<int> */
-    public function resolve(ScriptList $scripts, FeatureList $features, FeatureSelection $selection, LayoutReadBudget $budget, bool $hasFeatureVariations = false): array
+    public function resolve(ScriptList $scripts, FeatureList $features, FeatureSelection $selection, LayoutReadBudget $budget, \PDFToolkit\OpenType\Variation\FeatureVariations|\PDFToolkit\OpenType\Binary\BinaryView|null $variations = null): array
     {
         $script = $scripts->script($selection->script);
         if ($script === null && $selection->fallbackToDefaultScript) {
@@ -40,8 +40,11 @@ final readonly class FeatureResolver
             }
         }
         $lookups = [];
-        if ($selected !== [] && $hasFeatureVariations) {
-            throw new \PDFToolkit\OpenType\Exception\UnsupportedFontException('FeatureVariations evaluation requires an explicit variation model.');
+        if ($selected !== [] && $variations !== null) {
+            if (!$variations instanceof \PDFToolkit\OpenType\Variation\FeatureVariations || $selection->coordinates === null) {
+                throw new \PDFToolkit\OpenType\Exception\UnsupportedFontException('FeatureVariations require parsed conditions and explicit normalized coordinates.');
+            }
+            $features = $variations->evaluate($features, $selection->coordinates, $budget);
         }
         foreach ($selected as $index => $_) {
             foreach ($features->featureRecords[$index]->feature->lookupListIndices as $lookup) {

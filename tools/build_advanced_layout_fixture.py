@@ -20,7 +20,11 @@ languagesystem latn dflt;
 @LIGATURE = [a_b];
 @MARK = [acute grave dot];
 @TOP = [acute dot];
-table GDEF { GlyphClassDef @BASE, @LIGATURE, @MARK, ; } GDEF;
+table GDEF {
+    GlyphClassDef @BASE, @LIGATURE, @MARK, ;
+    Attach a 0 1;
+    LigatureCaretByPos a_b 200;
+} GDEF;
 markClass acute <anchor 0 100> @ABOVE;
 markClass dot <anchor 20 80> @ABOVE;
 markClass grave <anchor 0 0> @BELOW;
