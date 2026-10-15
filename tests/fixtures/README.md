@@ -35,3 +35,7 @@ Device comparison permits less than one design unit solely for HarfBuzz's
 integer quantization; native interpolation and feature substitutions compare
 exactly at seven normalized instances.
 
+
+`ToolkitAxes.ttf` extends the original variable layout fixture with asymmetric
+`wght`, `wdth` axes in that font order, named-instance records and avar 1.0 maps.
+It is reproduced by `tools/build_axis_fixture.py` under the same fixture licence.

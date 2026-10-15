@@ -29,7 +29,8 @@
     "signed-device-formats-1-2-3",
     "native-item-variation-store-interpolation",
     "conditional-feature-variation-evaluation",
-    "bounded-nested-lookup-and-attachment-graphs"
+    "bounded-nested-lookup-and-attachment-graphs",
+    "user-axis-selection-and-fvar-avar-1-normalization"
   ],
   "executionConstraints": {
     "lookupFlags": "all-defined-bits-with-explicit-GDEF",
@@ -143,15 +144,15 @@
     },
     "GDEF": {
       "status": "implemented",
-      "scope": "Versions1.0/1.2/1.3: glyph/mark classes, mark filtering sets, attachment point lists, caret formats1–3, native ItemVariationStore; actual hinted point access remains an explicit application capability"
+      "scope": "Versions1.0/1.2/1.3: glyph/mark classes, mark filtering sets, attachment point lists, caret formats1\u20133, native ItemVariationStore; actual hinted point access remains an explicit application capability"
     },
     "GPOS": {
       "status": "implemented",
-      "scope": "Types1–9, all contextual formats, pair/class adjustments, cursive and mark attachments, signed Device tables, VariationIndex and native FeatureVariations with explicit positions/scale/normalized instance"
+      "scope": "Types1\u20139, all contextual formats, pair/class adjustments, cursive and mark attachments, signed Device tables, VariationIndex and native FeatureVariations with explicit positions/scale/normalized instance"
     },
     "GSUB": {
       "status": "implemented",
-      "scope": "Types1–8, all contextual formats, script/language/feature selection and native FeatureVariations condition format1; explicit alternate and normalized coordinate policies"
+      "scope": "Types1\u20138, all contextual formats, script/language/feature selection and native FeatureVariations condition format1; explicit alternate and normalized coordinate policies"
     },
     "JSTF": {
       "status": "pending",
@@ -162,16 +163,16 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "avar": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 1.0 piecewise axis maps in original fvar order; missing mandatory anchors disable the affected map; avar 2 excluded"
     },
     "cvar": {
       "status": "pending",
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "fvar": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 1.0 ordered axes and named instances, explicit tagged user coordinates and default/clamped 16.16 to 2.14 normalization"
     },
     "gvar": {
       "status": "pending",
@@ -243,7 +244,7 @@
     }
   },
   "pendingMechanisms": [
-    "font-axis-normalization-and-outline-metric-variation",
+    "outline-and-metric-variation",
     "outlines-and-instruction-execution",
     "font-collections",
     "woff-and-woff2",

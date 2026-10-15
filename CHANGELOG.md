@@ -4,6 +4,8 @@ English | [Français](CHANGELOG.fr.md)
 
 ## Unreleased
 
+- Read fvar/avar 1.0 with immutable axis and named-instance objects, explicit user selection, bounded normalization and independent two-axis fontTools/HarfBuzz checks.
+
 ## 0.2.0 — 2026-10-15
 
 - Execute GSUB types 5/6 in all contextual formats and reverse chaining type 8, including nested lookup order, bounded recursion and dynamically expanded input indices.

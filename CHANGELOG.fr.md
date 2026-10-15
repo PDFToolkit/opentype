@@ -4,6 +4,8 @@
 
 ## À paraître
 
+- Lire fvar/avar 1.0 par objets immuables d’axes et d’instances nommées, sélection utilisateur explicite, normalisation bornée et contrôles indépendants fontTools/HarfBuzz sur deux axes.
+
 ## 0.2.0 — 15 octobre 2026
 
 - Exécuter les types GSUB 5/6 dans tous leurs formats contextuels et le type inverse 8, avec ordre des lookups imbriqués, récursion bornée et indices d'entrée après expansion.
