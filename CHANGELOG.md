@@ -4,6 +4,8 @@ English | [Français](CHANGELOG.fr.md)
 
 ## Unreleased
 
+- Model name versions 0/1 with exact multilingual records and explicit decoders; expose every OS/2 version 0–5 field, version-specific embedding flags and optical ranges.
+
 - Read fvar/avar 1.0 with immutable axis and named-instance objects, explicit user selection, bounded normalization and independent two-axis fontTools/HarfBuzz checks.
 
 ## 0.2.0 — 2026-10-15

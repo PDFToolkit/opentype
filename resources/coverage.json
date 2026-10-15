@@ -30,7 +30,9 @@
     "native-item-variation-store-interpolation",
     "conditional-feature-variation-evaluation",
     "bounded-nested-lookup-and-attachment-graphs",
-    "user-axis-selection-and-fvar-avar-1-normalization"
+    "user-axis-selection-and-fvar-avar-1-normalization",
+    "complete-name-record-model-with-explicit-decoding",
+    "versioned-os2-metadata-and-embedding-flags"
   ],
   "executionConstraints": {
     "lookupFlags": "all-defined-bits-with-explicit-GDEF",
@@ -63,12 +65,12 @@
       "scope": "Version and numGlyphs; remaining fields retained as bytes"
     },
     "name": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Versions 0/1 complete record/language-tag model; explicit UTF-16BE/ASCII and Macintosh Roman decoders; other platform codecs and locale matching require application capabilities"
     },
     "OS/2": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Versions 0\u20135 all fields including legacy 68-byte v0, versioned embedding semantics and optical ranges; declared coverage is not glyph coverage, MVAR adjustment separate"
     },
     "post": {
       "status": "pending",
