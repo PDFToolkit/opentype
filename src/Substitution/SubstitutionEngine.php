@@ -248,7 +248,7 @@ final readonly class SubstitutionEngine
                         $positions[] = $cursor;
                         ++$cursor;
                     }
-                    $buffer->replace($positions, [$ligature->ligatureGlyph]);
+                    $buffer->replace($positions, [$ligature->ligatureGlyph], true, $operations, $definition);
                     return $position + 1;
                 }
                 continue;

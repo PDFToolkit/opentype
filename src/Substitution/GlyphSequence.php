@@ -14,13 +14,16 @@ final readonly class GlyphSequence
     public array $clusters;
     /** @var list<non-empty-list<int>> Source components retained by ligature substitutions. */
     public array $componentClusters;
+    /** @var list<LigatureAssociation|null> Distinct from user-provided cluster numbers. */
+    public array $ligatureAssociations;
 
     /**
      * @param list<GlyphId> $glyphs Logical input order
      * @param list<int>|null $clusters Original input positions; substitutions retain their provenance
      * @param list<non-empty-list<int>>|null $componentClusters
+     * @param list<LigatureAssociation|null>|null $ligatureAssociations
      */
-    public function __construct(array $glyphs, ?array $clusters = null, ?array $componentClusters = null)
+    public function __construct(array $glyphs, ?array $clusters = null, ?array $componentClusters = null, ?array $ligatureAssociations = null)
     {
         foreach ($glyphs as $glyph) {
             if (!$glyph instanceof GlyphId) {
@@ -54,5 +57,15 @@ final readonly class GlyphSequence
             }
         }
         $this->componentClusters = array_values($componentClusters);
+        $ligatureAssociations ??= array_fill(0, count($glyphs), null);
+        if (!array_is_list($ligatureAssociations) || count($ligatureAssociations) !== count($glyphs)) {
+            throw new \InvalidArgumentException('Every glyph requires one nullable ligature association.');
+        }
+        foreach ($ligatureAssociations as $association) {
+            if ($association !== null && !$association instanceof LigatureAssociation) {
+                throw new \InvalidArgumentException('Ligature associations must be immutable objects.');
+            }
+        }
+        $this->ligatureAssociations = $ligatureAssociations;
     }
 }

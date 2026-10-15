@@ -160,19 +160,21 @@ final readonly class PositioningEngine
                 if ($target === null || $targetIndex === null) {
                     continue;
                 }
+                if ($subtable->type === 6) {
+                    $firstAssociation = $buffer->input->sequence->ligatureAssociations[$target];
+                    $secondAssociation = $buffer->input->sequence->ligatureAssociations[$position];
+                    if ($firstAssociation !== null && $secondAssociation !== null && ($firstAssociation->ligatureId !== $secondAssociation->ligatureId || $firstAssociation->componentIndex !== $secondAssociation->componentIndex)) {
+                        continue;
+                    }
+                }
                 $component = 0;
                 $anchors = $subtable->targetAnchors[$targetIndex]->components;
                 if ($subtable->type === 5) {
                     $component = count($anchors) - 1;
-                    $provenance = $buffer->input->sequence->componentClusters[$target];
-                    if (count($provenance) > 1) {
-                        $component = 0;
-                        foreach ($provenance as $part => $cluster) {
-                            $budget->consume(1);
-                            if ($cluster <= $buffer->input->sequence->clusters[$position]) {
-                                $component = min($part, count($anchors) - 1);
-                            }
-                        }
+                    $baseAssociation = $buffer->input->sequence->ligatureAssociations[$target];
+                    $markAssociation = $buffer->input->sequence->ligatureAssociations[$position];
+                    if ($baseAssociation !== null && $markAssociation !== null && $baseAssociation->ligatureId === $markAssociation->ligatureId && $markAssociation->componentIndex !== null) {
+                        $component = min($markAssociation->componentIndex, count($anchors) - 1);
                     }
                 }
                 $mark = $subtable->markRecords[$markIndex];

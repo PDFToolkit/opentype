@@ -138,6 +138,20 @@ final class PositioningTest extends TestCase
         self::assertEquals(new GlyphPosition(600), $input->positions[0]);
     }
 
+    public function testLigatureComponentAttachmentDoesNotDependOnDistinctClusters(): void
+    {
+        $font = (new SfntReader())->read(file_get_contents(__DIR__.'/fixtures/ToolkitAdvanced.ttf'));
+        $definition = (new GdefReader())->read($font->table(new Tag('GDEF')), $font->glyphCount());
+        $substitutions = (new \PDFToolkit\OpenType\Substitution\GsubReader())->read($font->table(new Tag('GSUB')), $font->glyphCount());
+        $input = new GlyphSequence([new GlyphId(2), new GlyphId(9), new GlyphId(3)], [0, 0, 0]);
+        $sequence = (new \PDFToolkit\OpenType\Substitution\SubstitutionEngine())->apply($substitutions, new FeatureSelection(new Tag('latn'), features: [new Tag('lig1')]), $input, $definition);
+        self::assertSame(0, $sequence->ligatureAssociations[1]->componentIndex);
+        self::assertSame($sequence->ligatureAssociations[0]->ligatureId, $sequence->ligatureAssociations[1]->ligatureId);
+        $table = (new GposReader())->read($font->table(new Tag('GPOS')), $font->glyphCount());
+        $positions = (new PositioningEngine())->apply($table, new FeatureSelection(new Tag('latn'), features: [new Tag('mklg')]), new PositionedGlyphSequence($sequence, [new GlyphPosition(600), new GlyphPosition()]), $definition);
+        self::assertEquals(new GlyphPosition(0, 0, -400, 600), $positions->positions[1]);
+    }
+
     public function testNestedPositioningCyclesAreBounded(): void
     {
         $rule = new ContextRule([new CoveredGlyph($this->coverage(1))], [new SequenceLookupRecord(0, 0)]);

@@ -37,6 +37,7 @@ def cases():
     yield {"name": "mark ligature default final component", "codePoints": [0xE002, 0x301], "features": ["mklg"]}
     yield {"name": "mark ligature first component", "codePoints": [97, 0x301, 98], "features": ["lig1", "mklg"]}
     yield {"name": "mark ligature final component", "codePoints": [97, 98, 0x301], "features": ["lig1", "mklg"]}
+    yield {"name": "mark chains do not cross ligature components", "codePoints": [97, 0x301, 98, 0x307], "features": ["lig1", "mklg", "mkmk"]}
     yield {"name": "kerning ignores unrelated text", "codePoints": [99, 100, 97, 98], "features": ["kern"]}
 
 
