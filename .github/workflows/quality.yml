@@ -38,10 +38,13 @@ jobs:
         run: |
           python tools/build_layout_fixture.py --check
           python tools/build_unicode_fixtures.py --check
+          python tools/build_advanced_layout_fixture.py --check
       - name: Compare font interpretation with fontTools
         run: python tools/validate_font_model.py --php php tests/fixtures/ToolkitLayout.ttf tests/fixtures/ToolkitUnicode.ttf tests/fixtures/ToolkitUnicode.otf
       - name: Compare supported glyph substitutions with HarfBuzz
         run: python tools/validate_layout.py --php php
+      - name: Compare contextual substitution and positioning with HarfBuzz
+        run: python tools/validate_advanced_layout.py --php php
       - name: Run the documented example
         run: |
           php examples/substitution.php
