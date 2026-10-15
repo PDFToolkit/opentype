@@ -76,6 +76,13 @@ final class CffTest extends TestCase
         $instance->evaluate((new CffDictReader())->read(new BinaryView(substr($raw, 0, -1).chr(19)), true, new LayoutReadBudget(100)));
     }
 
+    public function testDeprecatedDotsectionIsAnExplicitNoOp(): void
+    {
+        $program = self::numbers([20, 30])."\x0c\x00\x15\x0e";
+        $outline = (new CffOutlineEngine())->outline($this->font($program), new GlyphId(0));
+        self::assertSame([20.0, 30.0], [$outline->path->commands[0]->points[0]->x, $outline->path->commands[0]->points[0]->y]);
+    }
+
     public function testArithmeticTransientStorageAndExplicitRandom(): void
     {
         $program = self::numbers([10, 20])."\x0c\x0a".self::numbers([0])."\x0c\x14".self::numbers([0])."\x0c\x15".self::numbers([5])."\x0c\x18".self::numbers([50, 2])."\x0c\x0c\x15\x0c\x17".self::numbers([100])."\x0c\x18".self::numbers([0])."\x05\x0e";

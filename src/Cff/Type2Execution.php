@@ -278,6 +278,10 @@ final class Type2Execution
 
     private function arithmetic(int $operator): void
     {
+        if ($operator === 0) {
+            // Deprecated dotsection is defined as a no-op by Adobe Type 2 Appendix C.
+            return;
+        }
         if (in_array($operator, [3, 4, 10, 11, 12, 15, 24], true)) {
             $b = $this->pop();
             $a = $this->pop();
