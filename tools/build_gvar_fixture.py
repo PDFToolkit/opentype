@@ -12,6 +12,8 @@ def build(destination:Path):
         path=Path(directory)/'outlines.ttf';base(path);font=TTFont(path)
     fb=FontBuilder(font=font);fb.setupFvar([('wght',100,400,900,'Weight'),('wdth',62.5,100,200,'Width')],[])
     fb.setupVerticalMetrics({name:(1000,80) for name in font.getGlyphOrder()});fb.setupVerticalHeader(ascent=800,descent=-200)
+    for name in font.getGlyphOrder():
+        font['hmtx'].metrics[name]=(font['hmtx'].metrics[name][0],getattr(font['glyf'][name],'xMin',0))
     gvar=newTable('gvar');gvar.version=1;gvar.reserved=0;gvar.variations={}
     for name in font.getGlyphOrder():
         glyph=font['glyf'][name]
