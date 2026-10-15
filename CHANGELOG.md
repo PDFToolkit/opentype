@@ -4,6 +4,8 @@ English | [Français](CHANGELOG.fr.md)
 
 ## Unreleased
 
+- Evaluate native gvar/cvar tuples, infer sparse contour deltas and vary nested composites with explicit phantom metrics, USE_MY_METRICS and phantom attachment; retain unscaled CVT fractions.
+
 - Execute bounded CFF/CFF2 Type 2 cubic paths, subroutines, explicit native blends, legacy charsets/encodings and composites; validate against independent fontTools/HarfBuzz geometry.
 
 - Decode bounded loca/glyf outlines and assemble unhinted components with explicit offset policy, cycle/output budgets and quadratic paths; compare all points and drawn geometry with fontTools/HarfBuzz.

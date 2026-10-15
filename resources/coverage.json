@@ -39,7 +39,10 @@
     "explicit-quadratic-path-construction",
     "bounded-cff-cff2-type2-cubic-path-execution",
     "cff-charsets-encodings-and-explicit-font-matrices",
-    "cff2-charstring-and-private-dictionary-blends"
+    "cff2-charstring-and-private-dictionary-blends",
+    "native-gvar-contour-interpolation-and-composite-variation",
+    "explicit-phantom-metrics-and-component-attachment",
+    "native-cvar-design-value-interpolation"
   ],
   "executionConstraints": {
     "lookupFlags": "all-defined-bits-with-explicit-GDEF",
@@ -84,8 +87,8 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "cvt ": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Immutable signed design values; cvar interpolation separate from rasterizer control-value access"
     },
     "fpgm": {
       "status": "pending",
@@ -93,7 +96,7 @@
     },
     "glyf": {
       "status": "partial",
-      "scope": "Simple points/flags/instructions and composite records; unhinted contour-point assembly and quadratic paths; bytecode, phantom attachment/metric selection and gvar application separate"
+      "scope": "Simple/composite decoding, unhinted component assembly with explicit offset policy, quadratic paths, optional gvar instance, explicit phantom-point attachment and USE_MY_METRICS; instruction execution excluded"
     },
     "loca": {
       "status": "implemented",
@@ -176,16 +179,16 @@
       "scope": "Version 1.0 piecewise axis maps in original fvar order; missing mandatory anchors disable the affected map; avar 2 excluded"
     },
     "cvar": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 1.0 tuple-store evaluation at explicit coordinates, preserving fractional unscaled CVT values; device scaling and VM separate"
     },
     "fvar": {
       "status": "implemented",
       "scope": "Version 1.0 ordered axes and named instances, explicit tagged user coordinates and default/clamped 16.16 to 2.14 normalization"
     },
     "gvar": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 1.0 shared/embedded/intermediate tuples and packed data; explicit native sparse contour interpolation, composite placement and phantom deltas before instruction execution"
     },
     "HVAR": {
       "status": "implemented",
@@ -253,7 +256,6 @@
     }
   },
   "pendingMechanisms": [
-    "outline-variation-and-phantom-point-metric-fallback",
     "truetype-instruction-execution-and-cff-rasterizer-hinting",
     "font-collections",
     "woff-and-woff2",

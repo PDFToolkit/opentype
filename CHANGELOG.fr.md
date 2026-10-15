@@ -4,6 +4,8 @@
 
 ## À paraître
 
+- Évaluer les tuples gvar/cvar natifs, interpoler les deltas de contours omis et varier les composites imbriqués avec métriques fantômes explicites, USE_MY_METRICS et attachement fantôme ; conserver les fractions du CVT non mis à l’échelle.
+
 - Exécuter les tracés cubiques Type 2 CFF/CFF2 bornés, sous-programmes, blends natifs explicites, charsets/encodages historiques et composites ; comparer la géométrie à fontTools/HarfBuzz.
 
 - Décoder loca/glyf bornés et assembler les composants non hintés avec politique d’offset explicite, budgets de cycles/sortie et chemins quadratiques ; comparer points et géométrie avec fontTools/HarfBuzz.

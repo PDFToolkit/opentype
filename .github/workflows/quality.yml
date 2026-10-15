@@ -44,6 +44,7 @@ jobs:
           python tools/build_metric_variation_fixture.py --check
           python tools/build_outline_fixture.py --check
           python tools/build_cff_fixture.py --check
+          python tools/build_gvar_fixture.py --check
       - name: Compare font interpretation with fontTools
         run: python tools/validate_font_model.py --php php tests/fixtures/ToolkitLayout.ttf tests/fixtures/ToolkitUnicode.ttf tests/fixtures/ToolkitUnicode.otf tests/fixtures/ToolkitAdvanced.ttf tests/fixtures/ToolkitVariable.ttf
       - name: Compare supported glyph substitutions with HarfBuzz
@@ -62,6 +63,8 @@ jobs:
         run: python tools/validate_outlines.py --php php
       - name: Compare CFF/CFF2 outlines with fontTools and HarfBuzz
         run: python tools/validate_cff.py --php php
+      - name: Compare gvar/cvar and phantom metrics with fontTools and HarfBuzz
+        run: python tools/validate_gvar.py --php php
       - name: Run the documented example
         run: |
           php examples/substitution.php
