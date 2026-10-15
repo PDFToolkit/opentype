@@ -37,6 +37,22 @@ retaining source clusters. The objects can also be constructed directly. Their
 constructors check local invariants; readers additionally check binary bounds and
 cross-record references. Execution checks the selected lookup mechanisms.
 
+
+## Definitions, positions and variation instances
+
+`GdefTable` owns glyph/mark classes, mark sets, attachment-point indices, ligature
+carets and optional native variation data. `GposReader` constructs immutable
+values, anchors, pair matrices, attachment and context programs.
+`PositionedGlyphSequence` pairs glyph identities with explicit initial
+`GlyphPosition` objects; `PositioningEngine` returns adjusted objects. Mutable
+buffers are scoped to one execution, including its deferred attachment graph.
+
+`NormalizedCoordinates`, `FeatureVariations`, `ItemVariationStore` and
+`VariationInstance` evaluate a caller-selected layout instance. Device scaling
+and hinted outline-point access are explicit `PositioningContext` capabilities.
+Ligature attachment identities are independent from source cluster numbers.
+See the [positioning guide](positioning.md) for a complete example and limits.
+
 ## Relationship to PDFToolkit
 
 The PDF core owns PDF font dictionaries, CID mappings and text operators.

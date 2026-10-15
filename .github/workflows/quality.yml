@@ -41,7 +41,7 @@ jobs:
           python tools/build_advanced_layout_fixture.py --check
           python tools/build_variation_fixture.py --check
       - name: Compare font interpretation with fontTools
-        run: python tools/validate_font_model.py --php php tests/fixtures/ToolkitLayout.ttf tests/fixtures/ToolkitUnicode.ttf tests/fixtures/ToolkitUnicode.otf
+        run: python tools/validate_font_model.py --php php tests/fixtures/ToolkitLayout.ttf tests/fixtures/ToolkitUnicode.ttf tests/fixtures/ToolkitUnicode.otf tests/fixtures/ToolkitAdvanced.ttf tests/fixtures/ToolkitVariable.ttf
       - name: Compare supported glyph substitutions with HarfBuzz
         run: python tools/validate_layout.py --php php
       - name: Compare contextual substitution and positioning with HarfBuzz
@@ -53,3 +53,5 @@ jobs:
           php examples/substitution.php
           php examples/manual-ligature.php
           php examples/font-metrics.php
+          php examples/positioning.php
+          php examples/variable-layout.php

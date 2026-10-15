@@ -42,6 +42,24 @@ directement. Leurs constructeurs vérifient les invariants locaux ; les lecteurs
 contrôlent en plus les limites binaires et références entre enregistrements.
 L'exécution vérifie les mécanismes des lookups sélectionnés.
 
+
+## Définitions, positions et instances variables
+
+`GdefTable` contient classes de glyphes/marques, ensembles de marques, indices
+de points d'attache, curseurs de ligature et données variables natives
+optionnelles. `GposReader` construit valeurs, ancres, matrices de paires et
+programmes d'attachement/contexte immuables. `PositionedGlyphSequence` associe
+les identités aux `GlyphPosition` initiales explicites ; `PositioningEngine`
+renvoie les objets ajustés. Les buffers mutables appartiennent à une exécution,
+y compris son graphe d'attachement différé.
+
+`NormalizedCoordinates`, `FeatureVariations`, `ItemVariationStore` et
+`VariationInstance` évaluent l'instance de layout choisie par l'appelant.
+L'échelle Device et l'accès aux points après hinting sont des capacités
+explicites de `PositioningContext`. L'identité d'attachement des ligatures est
+indépendante des numéros de cluster. Voir le [guide du positionnement](positioning.md)
+pour un exemple complet et ses limites.
+
 ## Relation avec PDFToolkit
 
 Le core PDF possède les dictionnaires de fontes PDF, correspondances CID et

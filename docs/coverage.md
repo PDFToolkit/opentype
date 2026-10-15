@@ -27,18 +27,25 @@ The PDF is excluded from Composer archives.
 | GSUB type 1 | Single substitution formats 1/2 |
 | GSUB types 2/3/4 | Multiple, alternate and ligature format 1 |
 | GSUB type 7 | Extension format 1 around supported substitutions |
-| Execution | Explicit and required features, lookup order, alternate policy, clusters and bounded output; zero lookup flags |
+| GSUB types 5/6/8 | All three contextual/chained formats; reverse chain evaluated from end to start |
+| GDEF 1.0/1.2/1.3 | Classes, mark filters/attachment classes, attachment-point lists, caret formats 1–3 and native variation store |
+| GPOS types 1/2 | Single formats 1/2, pair format 1 and class-pair format 2 |
+| GPOS types 3/4/5/6 | Cursive, mark-to-base, mark-to-ligature and mark-to-mark attachment |
+| GPOS types 7/8/9 | Contextual/chained formats 1–3 and positioning extensions |
+| Layout variations | Conditional feature tables and ItemVariationStore interpolation at explicit normalized coordinates |
+| Device and point records | Signed 2/4/8-bit corrections with explicit pixel scale; retained point indices and explicit hinted-point provider |
+| Execution | Explicit/required features, lookup order, alternates, GDEF flags, clusters, ligature association identities and bounded lookup/output/attachment graphs |
 
 Tests cover direct construction and binary input. Independent checks use
-fontTools for font data and HarfBuzz for supported substitutions on reproducible
-fonts. They validate this tested scope, not every OpenType table.
+fontTools for font data and HarfBuzz for substitutions, positioning, attachments
+and variations on reproducible original fonts. The 17 initial, 49 advanced and
+36 variable/device cases validate this scope, not every OpenType table. Cursive
+checks compare glyph origins and final advance; Device checks permit less than
+one design unit for HarfBuzz integer quantization only.
 
 ## Remaining work
 
-- Contextual, chained contextual and reverse chained GSUB types 5/6/8.
-- GDEF classes, mark filtering/attachment and flags requiring those semantics.
-- GPOS positioning, including kerning and mark/cursive attachment.
-- Variable-font axes, interpolation and feature variations.
+- User-axis normalization, `fvar`/`avar`/STAT semantics and complete variable-font instantiation, including outline and metric deltas.
 - Glyph outlines, TrueType instruction execution and CFF/CFF2 charstrings.
 - Naming, OS/2, vertical, baseline, justification, mathematical, color and bitmap semantics.
 - Font collections, WOFF/WOFF2, serialization, subsetting and full Unicode shaping.

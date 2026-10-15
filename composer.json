@@ -1,7 +1,7 @@
 {
     "name": "pdftoolkit/opentype",
     "type": "library",
-    "description": "Explicit OpenType font objects, bounded SFNT reading and glyph substitutions",
+    "description": "Pure-object OpenType font parsing, substitutions, glyph positioning and layout variations",
     "keywords": [
         "opentype",
         "fonts",
@@ -9,7 +9,12 @@
         "ligatures",
         "typography",
         "object-model",
-        "php"
+        "php",
+        "kerning",
+        "gpos",
+        "gsub",
+        "gdef",
+        "font-variations"
     ],
     "homepage": "https://pdftoolkit.github.io/modules/opentype/",
     "support": {
@@ -66,7 +71,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     }
 }

@@ -68,16 +68,21 @@ the reproducible test font. Output contains glyph IDs and source clusters; the
 independent validator compares supported transformations with HarfBuzz. These
 are font-format results without a PDF rendering step.
 
-The [manual construction example](https://github.com/PDFToolkit/opentype/blob/v0.1.0/examples/manual-ligature.php)
+The [manual construction example](https://github.com/PDFToolkit/opentype/blob/v0.2.0/examples/manual-ligature.php)
 builds Coverage, LigatureSet, LookupList, FeatureList and ScriptList directly.
 Its illustrative identities are `f=4`, `i=5`, `ffi=7`: input `[4,4,5]` becomes
 `[7]` with source cluster `[0]`. This path uses the same engine without parsing
-a font. The [font metrics example](https://github.com/PDFToolkit/opentype/blob/v0.1.0/examples/font-metrics.php)
+a font. The [font metrics example](https://github.com/PDFToolkit/opentype/blob/v0.2.0/examples/font-metrics.php)
 separately explains Unicode mapping, design units and variation selectors.
 
-Positioning, line layout and PDF encoding need further explicit processing.
-GPOS and complete script shaping remain pending; selecting glyphs alone does
-not produce finished page text.
+Contextual GSUB types 5/6 execute all three glyph/class/coverage formats; type 8
+runs from the end of the logical sequence and can observe later replacements.
+Nested lookups have their own filtering flags and explicit depth/operation
+budgets. GDEF filtering preserves skipped marks and ligature component identity.
+
+[GPOS positioning](positioning.md) is an explicit next stage. Line layout, PDF
+encoding and complete script shaping still need further processing; selecting
+glyphs alone does not produce finished page text.
 
 See [coverage](coverage.md), [GSUB](https://learn.microsoft.com/en-us/typography/opentype/spec/gsub)
 and the [feature registry](https://learn.microsoft.com/en-us/typography/opentype/spec/featurelist).

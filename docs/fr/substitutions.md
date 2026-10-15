@@ -70,17 +70,23 @@ fonte de test reproductible. La sortie contient les glyphes et clusters
 d'origine ; le validateur indépendant compare les transformations prises en
 charge avec HarfBuzz. Ce sont des résultats du format de fonte, sans rendu PDF.
 
-L'[exemple de construction manuelle](https://github.com/PDFToolkit/opentype/blob/v0.1.0/examples/manual-ligature.php)
+L'[exemple de construction manuelle](https://github.com/PDFToolkit/opentype/blob/v0.2.0/examples/manual-ligature.php)
 construit directement Coverage, LigatureSet, LookupList, FeatureList et ScriptList.
 Ses identités illustratives sont `f=4`, `i=5`, `ffi=7` : l'entrée `[4,4,5]` devient
 `[7]` avec le cluster d'origine `[0]`. Ce chemin utilise le même moteur sans lire
-de fonte. L'[exemple de métriques](https://github.com/PDFToolkit/opentype/blob/v0.1.0/examples/font-metrics.php)
+de fonte. L'[exemple de métriques](https://github.com/PDFToolkit/opentype/blob/v0.2.0/examples/font-metrics.php)
 explique séparément les correspondances Unicode, unités de dessin et sélecteurs
 de variation.
 
-Positionnement, mise en lignes et encodage PDF demandent un traitement explicite
-supplémentaire. GPOS et le shaping complet restent à implémenter ; sélectionner
-les glyphes ne suffit pas à produire le texte final d'une page.
+Les types GSUB contextuels 5/6 exécutent leurs trois formats de glyphes/classes/
+Coverage ; le type 8 parcourt la séquence logique depuis la fin et peut observer
+les remplacements suivants. Les lookups imbriqués ont leurs propres flags de
+filtrage et budgets de profondeur/opérations. Le filtrage GDEF conserve les
+marques ignorées et l'identité des composants de ligature.
+
+Le [positionnement GPOS](positioning.md) constitue l'étape explicite suivante.
+Mise en lignes, encodage PDF et shaping complet demandent encore un traitement
+supplémentaire ; sélectionner les glyphes ne produit pas le texte final d'une page.
 
 Voir la [couverture](coverage.md), [GSUB](https://learn.microsoft.com/en-us/typography/opentype/spec/gsub)
 et le [registre des fonctionnalités](https://learn.microsoft.com/en-us/typography/opentype/spec/featurelist).

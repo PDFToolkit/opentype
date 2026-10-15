@@ -27,3 +27,11 @@ positions with independent HarfBuzz. Cursive comparison uses rendered glyph
 origins and the final pen position, since the division between an advance and
 an offset can differ while representing the same anchor geometry.
 
+`ToolkitVariable.ttf` is derived reproducibly from the same original font by
+`tools/build_variation_fixture.py`. Its one explicit `wght` axis drives a native
+GDEF ItemVariationStore and conditional GSUB/GPOS feature tables. The independent
+variation oracle also creates signed Device 1/2/3 variants in temporary files.
+Device comparison permits less than one design unit solely for HarfBuzz's
+integer quantization; native interpolation and feature substitutions compare
+exactly at seven normalized instances.
+
