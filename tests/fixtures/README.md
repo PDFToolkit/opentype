@@ -42,3 +42,7 @@ It is reproduced by `tools/build_axis_fixture.py` under the same fixture licence
 
 `ToolkitMetricVariations.ttf` adds original vhea/vmtx and HVAR/VVAR/MVAR data
 to ToolkitAxes. Reproduce it with `tools/build_metric_variation_fixture.py`.
+
+`ToolkitOutlines.ttf` is an original simple/composite quadratic fixture. Its
+generator `tools/build_outline_fixture.py` covers transformed/nested/attached
+components and all-off-curve contours without using third-party outlines.

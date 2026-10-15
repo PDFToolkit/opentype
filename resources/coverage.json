@@ -34,7 +34,9 @@
     "complete-name-record-model-with-explicit-decoding",
     "versioned-os2-metadata-and-embedding-flags",
     "vertical-default-metrics-and-cff-origins",
-    "native-hvar-vvar-mvar-delta-evaluation"
+    "native-hvar-vvar-mvar-delta-evaluation",
+    "bounded-truetype-outline-decoding-and-component-assembly",
+    "explicit-quadratic-path-construction"
   ],
   "executionConstraints": {
     "lookupFlags": "all-defined-bits-with-explicit-GDEF",
@@ -87,12 +89,12 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "glyf": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "partial",
+      "scope": "Simple points/flags/instructions and composite records; unhinted contour-point assembly and quadratic paths; bytecode, phantom attachment/metric selection and gvar application separate"
     },
     "loca": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Short and long glyph offsets bounded against maxp and glyf"
     },
     "prep": {
       "status": "pending",
@@ -249,7 +251,7 @@
   },
   "pendingMechanisms": [
     "outline-variation-and-phantom-point-metric-fallback",
-    "outlines-and-instruction-execution",
+    "truetype-instruction-execution-and-cff-charstrings",
     "font-collections",
     "woff-and-woff2",
     "font-writing",

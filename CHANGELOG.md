@@ -4,6 +4,8 @@ English | [Français](CHANGELOG.fr.md)
 
 ## Unreleased
 
+- Decode bounded loca/glyf outlines and assemble unhinted components with explicit offset policy, cycle/output budgets and quadratic paths; compare all points and drawn geometry with fontTools/HarfBuzz.
+
 - Read vertical metrics and CFF origins; evaluate native HVAR/VVAR/MVAR deltas through explicit instance objects with bounded index maps and independent fontTools/HarfBuzz comparisons.
 
 - Model name versions 0/1 with exact multilingual records and explicit decoders; expose every OS/2 version 0–5 field, version-specific embedding flags and optical ranges.

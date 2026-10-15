@@ -4,6 +4,8 @@
 
 ## À paraître
 
+- Décoder loca/glyf bornés et assembler les composants non hintés avec politique d’offset explicite, budgets de cycles/sortie et chemins quadratiques ; comparer points et géométrie avec fontTools/HarfBuzz.
+
 - Lire métriques verticales et origines CFF ; évaluer les deltas HVAR/VVAR/MVAR natifs par instances explicites, correspondances d’indices bornées et comparaisons fontTools/HarfBuzz indépendantes.
 
 - Modéliser name versions 0/1 avec enregistrements multilingues exacts et décodeurs explicites ; exposer tous les champs OS/2 versions 0–5, droits d’incorporation versionnés et plages optiques.
