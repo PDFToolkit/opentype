@@ -4,6 +4,8 @@ English | [Français](CHANGELOG.fr.md)
 
 ## Unreleased
 
+- Read and explicitly select precomputed hdmx/LTSH/VDMX metrics with bounded immutable records and a fontTools oracle.
+
 - Complete head/hhea/maxp/post models, versioned gasp recommendations and STAT 1.0–1.2 axis values with explicit matching; compare every field against fontTools.
 
 - Evaluate native gvar/cvar tuples, infer sparse contour deltas and vary nested composites with explicit phantom metrics, USE_MY_METRICS and phantom attachment; retain unscaled CVT fractions.

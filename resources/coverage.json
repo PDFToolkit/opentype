@@ -45,7 +45,8 @@
     "native-cvar-design-value-interpolation",
     "complete-head-hhea-maxp-post-metadata",
     "explicit-gasp-range-recommendations",
-    "stat-axes-value-formats-1-through-4-and-explicit-matching"
+    "stat-axes-value-formats-1-through-4-and-explicit-matching",
+    "explicit-precomputed-device-metric-and-linear-threshold-selection"
   ],
   "executionConstraints": {
     "lookupFlags": "all-defined-bits-with-explicit-GDEF",
@@ -83,7 +84,7 @@
     },
     "OS/2": {
       "status": "implemented",
-      "scope": "Versions 0\u20135 all fields including legacy 68-byte v0, versioned embedding semantics and optical ranges; declared coverage is not glyph coverage, MVAR adjustment separate"
+      "scope": "Versions 0–5 all fields including legacy 68-byte v0, versioned embedding semantics and optical ranges; declared coverage is not glyph coverage, MVAR adjustment separate"
     },
     "post": {
       "status": "implemented",
@@ -159,15 +160,15 @@
     },
     "GDEF": {
       "status": "implemented",
-      "scope": "Versions1.0/1.2/1.3: glyph/mark classes, mark filtering sets, attachment point lists, caret formats1\u20133, native ItemVariationStore; actual hinted point access remains an explicit application capability"
+      "scope": "Versions1.0/1.2/1.3: glyph/mark classes, mark filtering sets, attachment point lists, caret formats1–3, native ItemVariationStore; actual hinted point access remains an explicit application capability"
     },
     "GPOS": {
       "status": "implemented",
-      "scope": "Types1\u20139, all contextual formats, pair/class adjustments, cursive and mark attachments, signed Device tables, VariationIndex and native FeatureVariations with explicit positions/scale/normalized instance"
+      "scope": "Types1–9, all contextual formats, pair/class adjustments, cursive and mark attachments, signed Device tables, VariationIndex and native FeatureVariations with explicit positions/scale/normalized instance"
     },
     "GSUB": {
       "status": "implemented",
-      "scope": "Types1\u20138, all contextual formats, script/language/feature selection and native FeatureVariations condition format1; explicit alternate and normalized coordinate policies"
+      "scope": "Types1–8, all contextual formats, script/language/feature selection and native FeatureVariations condition format1; explicit alternate and normalized coordinate policies"
     },
     "JSTF": {
       "status": "pending",
@@ -222,16 +223,16 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "hdmx": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 0 ordered pixel-width records with explicit ppem selection; no scaler invocation"
     },
     "kern": {
       "status": "pending",
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "LTSH": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Version 0 complete per-glyph thresholds and explicit declared-linear comparison; no verification by instruction execution"
     },
     "MERG": {
       "status": "pending",
@@ -246,8 +247,8 @@
       "scope": "Raw table bytes available; semantic model and execution pending"
     },
     "VDMX": {
-      "status": "pending",
-      "scope": "Raw table bytes available; semantic model and execution pending"
+      "status": "implemented",
+      "scope": "Versions 0/1 ratio ranges, shared height groups and explicit character-set/resolution/ppem selection; no interpolation or rasterization"
     },
     "vhea": {
       "status": "implemented",

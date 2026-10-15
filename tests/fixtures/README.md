@@ -46,3 +46,8 @@ to ToolkitAxes. Reproduce it with `tools/build_metric_variation_fixture.py`.
 `ToolkitOutlines.ttf` is an original simple/composite quadratic fixture. Its
 generator `tools/build_outline_fixture.py` covers transformed/nested/attached
 components and all-off-curve contours without using third-party outlines.
+
+`ToolkitDeviceMetrics.ttf` extends the original metadata fixture with declared
+hdmx widths, LTSH thresholds and shared VDMX ratio groups. Its original values are
+synthetic declarations, not claimed rasterizer output. Reproduce it with
+`tools/build_device_fixture.py`.
