@@ -34,6 +34,7 @@ def cases():
     yield {"name": "mark base below", "codePoints": [97, 0x300], "features": ["mark"]}
     yield {"name": "mark missing base anchor", "codePoints": [98, 0x300], "features": ["mark"]}
     yield {"name": "mark chain", "codePoints": [97, 0x301, 0x307], "features": ["mark", "mkmk"]}
+    yield {"name": "mark placement after attachment", "codePoints": [97, 0x301], "features": ["mark", "pst1"]}
     yield {"name": "mark ligature default final component", "codePoints": [0xE002, 0x301], "features": ["mklg"]}
     yield {"name": "mark ligature first component", "codePoints": [97, 0x301, 98], "features": ["lig1", "mklg"]}
     yield {"name": "mark ligature final component", "codePoints": [97, 98, 0x301], "features": ["lig1", "mklg"]}

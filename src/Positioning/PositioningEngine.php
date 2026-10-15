@@ -94,7 +94,7 @@ final readonly class PositioningEngine
             if ($subtable instanceof SingleAdjustment) {
                 $covered = $subtable->coverage->indexOf($glyphs[$position]);
                 if ($covered !== null) {
-                    $buffer->set($position, $buffer->positions[$position]->adjusted($subtable->values[$subtable->format === 1 ? 0 : $covered], $context));
+                    $buffer->adjust($position, $subtable->values[$subtable->format === 1 ? 0 : $covered], $context);
                     return $position + 1;
                 }
             } elseif ($subtable instanceof PairAdjustment || $subtable instanceof ClassPairAdjustment) {
@@ -116,8 +116,8 @@ final readonly class PositioningEngine
                     }
                 }
                 if ($pair !== null) {
-                    $buffer->set($position, $buffer->positions[$position]->adjusted($pair[0], $context));
-                    $buffer->set($second, $buffer->positions[$second]->adjusted($pair[1], $context));
+                    $buffer->adjust($position, $pair[0], $context);
+                    $buffer->adjust($second, $pair[1], $context);
                     return $subtable->hasSecondValue ? $second + 1 : $position + 1;
                 }
             } elseif ($subtable instanceof CursiveAttachment) {

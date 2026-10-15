@@ -28,6 +28,17 @@ final class PositionBuffer
         array_splice($this->positions, $index, 1, [$position]);
     }
 
+    public function adjust(int $index, ValueRecord $value, PositioningContext $context): void
+    {
+        $before = $this->positions[$index];
+        $after = $before->adjusted($value, $context);
+        if (isset($this->attachments[$index])) {
+            $link = $this->attachments[$index];
+            $this->attachments[$index] = new AttachmentLink($link->parent, $link->xDifference + ($link->adjustX ? $after->xOffset - $before->xOffset : 0), $link->yDifference + ($link->adjustY ? $after->yOffset - $before->yOffset : 0), $link->adjustX, $link->adjustY);
+        }
+        $this->set($index, $after);
+    }
+
     public function advanceBetween(int $from, int $to, bool $vertical, LayoutReadBudget $budget): float
     {
         $advance = 0.0;

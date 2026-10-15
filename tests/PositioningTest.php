@@ -152,6 +152,16 @@ final class PositioningTest extends TestCase
         self::assertEquals(new GlyphPosition(0, 0, -400, 600), $positions->positions[1]);
     }
 
+    public function testLaterPlacementAdjustmentsRemainRelativeToTheAttachedMark(): void
+    {
+        $mark = new MarkAttachment(4, $this->coverage(2), $this->coverage(1), 1, [new MarkRecord(0, new Anchor(0, 100))], [new AttachmentAnchors([[new Anchor(250, 700)]])]);
+        $move = new SingleAdjustment($this->coverage(2), [new ValueRecord(10, 20)], 1);
+        $table = $this->table([new PositioningLookup(4, new LookupFlags(0), [$mark]), new PositioningLookup(1, new LookupFlags(0), [$move])]);
+        $input = new PositionedGlyphSequence(new GlyphSequence([new GlyphId(1), new GlyphId(2)]), [new GlyphPosition(600), new GlyphPosition()]);
+        $result = (new PositioningEngine())->apply($table, $this->selection(), $input);
+        self::assertEquals(new GlyphPosition(0, 0, -340, 620), $result->positions[1]);
+    }
+
     public function testNestedPositioningCyclesAreBounded(): void
     {
         $rule = new ContextRule([new CoveredGlyph($this->coverage(1))], [new SequenceLookupRecord(0, 0)]);

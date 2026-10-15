@@ -55,6 +55,7 @@ feature mkmk {
     pos mark acute <anchor 0 250> mark @ABOVE;
     pos mark dot <anchor 20 220> mark @ABOVE;
 } mkmk;
+feature pst1 { pos acute <13 17 0 0>; } pst1;
 lookup PosExt useExtension { pos c <4 5 6 7>; } PosExt;
 feature pext { lookup PosExt; } pext;
 feature lig1 { lookupflag IgnoreMarks; sub a b by a_b; } lig1;
