@@ -13,7 +13,7 @@ final readonly class CffFont
      * @param list<CffFontDictionary> $fontDictionaries
      * @param list<int> $fontSelection
      */
-    public function __construct(public bool $cff2, public int $unitsPerEm, public CffDictionary $topDictionary, public CffIndex $charStrings, public CffIndex $globalSubroutines, public array $fontDictionaries, public array $fontSelection, public ?ItemVariationStore $variationStore = null, public ?CffCharacterSet $characterSet = null, public ?CffEncoding $encoding = null)
+    public function __construct(public bool $cff2, public int $unitsPerEm, public CffDictionary $topDictionary, public CffIndex $charStrings, public CffIndex $globalSubroutines, public array $fontDictionaries, public array $fontSelection, public ?ItemVariationStore $variationStore = null, public ?CffCharacterSet $characterSet = null, public ?CffEncoding $encoding = null, public ?string $name = null, public ?CffRos $ros = null)
     {
         if ($unitsPerEm < 16 || $unitsPerEm > 16384 || $charStrings->objects === [] || !array_is_list($fontDictionaries) || $fontDictionaries === [] || !array_is_list($fontSelection) || count($fontSelection) !== count($charStrings->objects)) {
             throw new \InvalidArgumentException('Invalid CFF font dimensions.');

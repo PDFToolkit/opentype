@@ -34,10 +34,19 @@ final readonly class CffCharacterSet
         if ($this->cidKeyed) {
             return null;
         }
+        return $this->string($identifier);
+    }
+
+    /** Resolve a SID in the standard/custom string space, including CID ROS metadata. */
+    public function string(int $identifier): string
+    {
+        if ($identifier < 0) {
+            throw new \OutOfBoundsException('A CFF string SID cannot be negative.');
+        }
         if ($identifier < 391) {
             return CffStandardData::STRINGS[$identifier];
         }
-        $string = $this->strings->objects[$identifier - 391];
+        $string = $this->strings->objects[$identifier - 391] ?? throw new \OutOfBoundsException('A CFF string SID is absent.');
 
         return $string->bytes(0, $string->size());
     }

@@ -114,6 +114,8 @@ final readonly class CffReader
         }
 
         $charset = $encoding = null;
+        $name = null;
+        $ros = null;
         if (!$cff2) {
             $charsetOffset = $top->integer(15, 0);
             if ($charsetOffset > 2) {
@@ -130,7 +132,27 @@ final readonly class CffReader
             }
         }
 
-        return new CffFont($cff2, $font->table(new Tag('head'))->uint16(18), $top, $charStrings, $global, $fontDictionaries, $selection, $store, $charset, $encoding);
+        if (!$cff2) {
+            $name = $names->objects[0]->bytes(0, $names->objects[0]->size());
+            $declaration = $top->operands(1230);
+            if ($declaration !== null) {
+                if (count($declaration) !== 3 || $charset === null) {
+                    throw new MalformedFontException('CFF ROS requires registry, ordering and supplement.');
+                }
+                foreach ($declaration as $value) {
+                    if ($value < 0 || $value > 0x7FFFFFFF || floor((float) $value) !== (float) $value) {
+                        throw new MalformedFontException('CFF ROS operands must be nonnegative integers.');
+                    }
+                }
+                try {
+                    $ros = new CffRos($charset->string((int) $declaration[0]), $charset->string((int) $declaration[1]), (int) $declaration[2]);
+                } catch (\OutOfBoundsException|\InvalidArgumentException $error) {
+                    throw new MalformedFontException('Invalid CFF ROS strings or supplement.', 0, $error);
+                }
+            }
+        }
+
+        return new CffFont($cff2, $font->table(new Tag('head'))->uint16(18), $top, $charStrings, $global, $fontDictionaries, $selection, $store, $charset, $encoding, $name, $ros);
     }
 
     private function fontDictionary(CffDictionary $dictionary, BinaryView $table, bool $cff2, int $minimum, LayoutReadBudget $budget, LayoutReadBudget $bytesBudget): CffFontDictionary

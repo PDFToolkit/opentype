@@ -40,6 +40,8 @@ final class CffTest extends TestCase
     {
         $font = (new CffReader())->read((new SfntReader())->read(file_get_contents(__DIR__.'/fixtures/ToolkitCff.otf')));
         $engine = new CffOutlineEngine();
+        self::assertSame('ToolkitCff', $font->name);
+        self::assertNull($font->ros);
         self::assertSame('subr', $font->characterSet->name(new GlyphId(13)));
         $subr = $engine->outline($font, new GlyphId(13));
         self::assertSame(700.0, $subr->width);
