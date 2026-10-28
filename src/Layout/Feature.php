@@ -13,7 +13,7 @@ final readonly class Feature
     public array $lookupListIndices;
 
     /** @param list<int> $lookupListIndices */
-    public function __construct(array $lookupListIndices, public ?BinaryView $featureParams = null)
+    public function __construct(array $lookupListIndices, public ?BinaryView $featureParams = null, public ?FeatureParameters $parameters = null)
     {
         foreach ($lookupListIndices as $index) {
             if (!is_int($index) || $index < 0 || $index > 65535) {

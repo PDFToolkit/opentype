@@ -6,7 +6,6 @@ namespace PDFToolkit\OpenType\Layout;
 
 use PDFToolkit\OpenType\Binary\BinaryView;
 use PDFToolkit\OpenType\Exception\MalformedFontException;
-use PDFToolkit\OpenType\Exception\UnsupportedFontException;
 use PDFToolkit\OpenType\Substitution\LayoutReadBudget;
 use PDFToolkit\OpenType\Value\Tag;
 
@@ -99,42 +98,11 @@ final readonly class LayoutListsReader
             $indices[] = $table->uint16(4 + 2 * $i);
         }
         $params = $table->uint16(0) === 0 ? null : $this->child($table, $table->uint16(0), 4 + 2 * $count);
-        if ($params !== null) {
-            $this->featureParams($params, $tag, $budget);
+        if ($tag->value === 'size' && ($count !== 0 || $params === null)) {
+            throw new MalformedFontException('The size feature requires parameters and cannot reference lookups.');
         }
+        $parameters = $params === null ? null : (new FeatureParametersReader())->read($params, $tag, $budget);
 
-        return new Feature($indices, $params);
+        return new Feature($indices, $params, $parameters);
     }
-
-    private function featureParams(BinaryView $table, Tag $tag, LayoutReadBudget $budget): void
-    {
-        if ($tag->value === 'size') {
-            $table->bytes(0, 10);
-
-            return;
-        }
-        if (preg_match('/^ss(?:0[1-9]|1[0-9]|20)$/D', $tag->value) === 1) {
-            $table->bytes(0, 4);
-            if ($table->uint16(0) !== 0) {
-                throw new UnsupportedFontException('Unsupported stylistic-set feature parameters version.');
-            }
-
-            return;
-        }
-        if (preg_match('/^cv(?:0[1-9]|[1-9][0-9])$/D', $tag->value) !== 1) {
-            throw new MalformedFontException('This feature tag does not define feature parameters.');
-        }
-        if ($table->uint16(0) !== 0) {
-            throw new UnsupportedFontException('Unsupported character-variant feature parameters version.');
-        }
-        $count = $table->uint16(12);
-        $this->records($table, 14, $count, 3, $budget);
-        for ($i = 0; $i < $count; ++$i) {
-            $code = $table->uint24(14 + 3 * $i);
-            if ($code > 0x10FFFF || ($code >= 0xD800 && $code <= 0xDFFF)) {
-                throw new MalformedFontException('Feature parameters contain an invalid Unicode scalar.');
-            }
-        }
-    }
-
 }
