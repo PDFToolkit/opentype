@@ -16,7 +16,7 @@ final readonly class UnicodeCharacterMap
     /** @param list<VariationSelectorRecord> $variationSelectors */
     public function __construct(
         public EncodingRecord $encoding,
-        private SegmentedCharacterMap|SequentialCharacterMap $defaultMap,
+        private CharacterMapSubtable $defaultMap,
         array $variationSelectors = [],
     ) {
         if (!array_is_list($variationSelectors)) {

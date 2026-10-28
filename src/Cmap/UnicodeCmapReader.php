@@ -35,7 +35,7 @@ final readonly class UnicodeCmapReader
         $bestScore = -1;
         $variationSelectors = [];
         $seenVariation = false;
-        /** @var array<int, SegmentedCharacterMap|SequentialCharacterMap> $maps */
+        /** @var array<int, CharacterMapSubtable> $maps */
         $maps = [];
         $previousKey = null;
         for ($index = 0; $index < $count; ++$index) {
@@ -66,9 +66,12 @@ final readonly class UnicodeCmapReader
             if ($record->platformId === 0 && $record->encodingId === 5) {
                 throw new MalformedFontException('Unicode encoding 5 requires a format 14 subtable.');
             }
-            $unicode = ($record->platformId === 0 && $record->encodingId <= 4)
+            if (($format === 13) !== ($record->platformId === 0 && $record->encodingId === 6)) {
+                throw new MalformedFontException('Format 13 requires Unicode platform 0, encoding 6, and vice versa.');
+            }
+            $unicode = ($record->platformId === 0 && ($record->encodingId <= 4 || $record->encodingId === 6))
                 || ($record->platformId === 3 && in_array($record->encodingId, [1, 10], true));
-            if (!$unicode || !in_array($format, [4, 12], true)) {
+            if (!$unicode || !in_array($format, [0, 2, 4, 6, 8, 10, 12, 13], true)) {
                 continue;
             }
             if ($record->platformId === 3
@@ -78,12 +81,16 @@ final readonly class UnicodeCmapReader
             }
             if (!isset($maps[$record->offset])) {
                 $subtable = $table->view($record->offset);
-                $maps[$record->offset] = $format === 12
-                    ? $this->readSequential($subtable, $glyphCount, $remaining)
-                    : $this->readSegments($subtable, $glyphCount, $remaining);
+                $maps[$record->offset] = match ($format) {
+                    4 => $this->readSegments($subtable, $glyphCount, $remaining),
+                    12 => $this->readSequential($subtable, $glyphCount, $remaining),
+                    2 => $this->readHighByte($subtable, $glyphCount, $remaining),
+                    8, 13 => $this->readGrouped($subtable, $glyphCount, $remaining),
+                    default => $this->readArray($subtable, $glyphCount, $remaining),
+                };
             }
             // Prefer full repertoire. Ties consistently prefer Windows, as fontTools getBestCmap does.
-            $score = ($format === 12 ? 100 : 0) + ($record->platformId === 3 ? 10 : $record->encodingId);
+            $score = (in_array($format, [8, 10, 12, 13], true) ? 100 : 0) + ($record->platformId === 3 ? 10 : $record->encodingId);
             if ($score > $bestScore) {
                 $bestScore = $score;
                 $selected = $record;
@@ -91,10 +98,143 @@ final readonly class UnicodeCmapReader
             }
         }
         if ($selected === null || $selectedMap === null) {
-            throw new UnsupportedFontException('No supported Unicode cmap subtable (format 4 or 12) is present.');
+            throw new UnsupportedFontException('No supported Unicode cmap subtable is present.');
         }
 
         return new UnicodeCharacterMap($selected, $selectedMap, $variationSelectors);
+    }
+
+    private function readArray(BinaryView $source, int $glyphCount, int &$remaining): ArrayCharacterMap
+    {
+        $format = $source->uint16(0);
+        $length = $format === 10 ? $source->uint32(4) : $source->uint16(2);
+        $table = $source->view(0, $length);
+        $first = match ($format) {
+            0 => 0, 6 => $table->uint16(6), default => $table->uint32(12)
+        };
+        $count = match ($format) {
+            0 => 256, 6 => $table->uint16(8), default => $table->uint32(16)
+        };
+        $position = match ($format) {
+            0 => 6, 6 => 10, default => 20
+        };
+        $width = $format === 0 ? 1 : 2;
+        $this->consume($remaining, $count);
+        $limit = $format === 10 ? 0x110000 : 0x10000;
+        if ($length !== $position + $width * $count || $first >= $limit || $count > $limit - $first
+            || ($format === 10 && $table->uint16(2) !== 0)
+        ) {
+            throw new MalformedFontException('Invalid array cmap range, reserved field or length.');
+        }
+        $glyphs = [];
+        for ($index = 0; $index < $count; ++$index) {
+            $glyph = $width === 1 ? $table->uint8($position + $index) : $table->uint16($position + 2 * $index);
+            if ($glyph >= $glyphCount || ($first + $index >= 0xD800 && $first + $index <= 0xDFFF && $glyph !== 0)) {
+                throw new MalformedFontException('An array cmap references an invalid glyph or maps a surrogate.');
+            }
+            $glyphs[] = $glyph;
+        }
+
+        return new ArrayCharacterMap($format, $first, $glyphs);
+    }
+
+    private function readHighByte(BinaryView $source, int $glyphCount, int &$remaining): HighByteCharacterMap
+    {
+        $table = $source->view(0, $source->uint16(2));
+        $table->bytes(6, 512);
+        $this->consume($remaining, 256);
+        $keys = [];
+        for ($index = 0; $index < 256; ++$index) {
+            $key = $table->uint16(6 + 2 * $index);
+            if (($key & 7) !== 0) {
+                throw new MalformedFontException('Format 2 subheader keys must be multiples of eight.');
+            }
+            $keys[] = intdiv($key, 8);
+        }
+        $count = max($keys) + 1;
+        $this->consume($remaining, $count);
+        $arrayStart = 518 + 8 * $count;
+        $table->bytes(518, 8 * $count);
+        if (($table->size() & 1) !== 0) {
+            throw new MalformedFontException('A format 2 subtable must contain whole words.');
+        }
+        $headers = [];
+        for ($index = 0; $index < $count; ++$index) {
+            $position = 518 + 8 * $index;
+            $first = $table->uint16($position);
+            $entries = $table->uint16($position + 2);
+            $delta = $table->int16($position + 4);
+            $offset = $table->uint16($position + 6);
+            $this->consume($remaining, $entries);
+            $glyphPosition = $position + 6 + $offset;
+            if ($first > 255 || $entries > 256 - $first || ($offset & 1) !== 0
+                || ($entries > 0 && $glyphPosition < $arrayStart)
+            ) {
+                throw new MalformedFontException('Invalid format 2 low-byte range or glyph array offset.');
+            }
+            $glyphs = [];
+            if ($entries > 0) {
+                $table->bytes($glyphPosition, 2 * $entries);
+            }
+            for ($entry = 0; $entry < $entries; ++$entry) {
+                $glyph = $table->uint16($glyphPosition + 2 * $entry);
+                $glyph = $glyph === 0 ? 0 : ($glyph + $delta) & 65535;
+                if ($glyph >= $glyphCount) {
+                    throw new MalformedFontException('A format 2 mapping references a glyph outside maxp.numGlyphs.');
+                }
+                $glyphs[] = $glyph;
+            }
+            $headers[] = new ArrayCharacterMap(2, $first, $glyphs);
+        }
+        $map = new HighByteCharacterMap($keys, $headers);
+        // A Unicode encoding must never map isolated surrogate code values.
+        for ($code = 0xD800; $code <= 0xDFFF; ++$code) {
+            $key = $keys[$code >> 8];
+            if ($key !== 0 && ($headers[$key] ?? throw new MalformedFontException('Invalid subheader key.'))->glyphFor(new CodePoint($code & 255))->value !== 0) {
+                throw new MalformedFontException('A Unicode format 2 cmap cannot map surrogate values.');
+            }
+        }
+
+        return $map;
+    }
+
+    private function readGrouped(BinaryView $source, int $glyphCount, int &$remaining): GroupedCharacterMap
+    {
+        $format = $source->uint16(0);
+        $table = $source->view(0, $source->uint32(4));
+        $countOffset = $format === 8 ? 8204 : 12;
+        $count = $table->uint32($countOffset);
+        $this->consume($remaining, $count);
+        $startOffset = $countOffset + 4;
+        if ($table->uint16(2) !== 0 || $table->size() !== $startOffset + 12 * $count) {
+            throw new MalformedFontException('Invalid grouped cmap reserved field or length.');
+        }
+        $groups = [];
+        $previous = -1;
+        for ($index = 0; $index < $count; ++$index) {
+            $position = $startOffset + 12 * $index;
+            $start = $table->uint32($position);
+            $end = $table->uint32($position + 4);
+            $glyph = $table->uint32($position + 8);
+            if ($start > $end || $start <= $previous || $end > 0x10FFFF || $glyph >= $glyphCount
+                || ($format === 8 && ($end - $start >= $glyphCount - $glyph || ($start <= 0xDFFF && $end >= 0xD800)))
+            ) {
+                throw new MalformedFontException('Invalid grouped cmap code range or glyph index.');
+            }
+            if ($format === 8) {
+                for ($code = $start; $code <= $end; ++$code) {
+                    $word = $code > 65535 ? $code >> 16 : $code;
+                    $is32 = ($table->uint8(12 + intdiv($word, 8)) & (1 << (7 - $word % 8))) !== 0;
+                    if ($is32 !== ($code > 65535)) {
+                        throw new MalformedFontException('The format 8 is32 bitmap disagrees with its character groups.');
+                    }
+                }
+            }
+            $groups[] = new CharacterMapGroup($start, $end, new GlyphId($glyph));
+            $previous = $end;
+        }
+
+        return new GroupedCharacterMap($format, $groups);
     }
 
     private function readSegments(BinaryView $source, int $glyphCount, int &$remaining): SegmentedCharacterMap
