@@ -117,6 +117,37 @@ final class CmapTest extends TestCase
         (new UnicodeCmapReader())->read(new BinaryView($this->cmap([[3, 0, $this->formatFour()]])), 10);
     }
 
+    public function testDistinctMacintoshLanguagesDoNotPreventUnicodeSelection(): void
+    {
+        $records = [
+            [1, 6, pack('nnn', 0, 262, 0).str_repeat("\0", 256)],
+            [1, 6, pack('nnn', 0, 262, 15).str_repeat("\0", 256)],
+            [3, 10, $this->formatTwelve([[65, 65, 1]])],
+        ];
+        $map = (new UnicodeCmapReader())->read(new BinaryView($this->cmap($records)), 10);
+        self::assertSame(1, $map->glyphFor(new CodePoint(65))->value);
+        self::assertSame(3, $map->encoding->platformId);
+    }
+
+    public function testDuplicateMacintoshLanguageIsRejected(): void
+    {
+        $this->expectException(MalformedFontException::class);
+        $mac = pack('nnn', 0, 262, 15).str_repeat("\0", 256);
+        (new UnicodeCmapReader())->read(new BinaryView($this->cmap([
+            [1, 6, $mac], [1, 6, $mac], [3, 10, $this->formatTwelve([[65, 65, 1]])],
+        ])), 10);
+    }
+
+    public function testOutOfOrderMacintoshLanguagesAreRejected(): void
+    {
+        $this->expectException(MalformedFontException::class);
+        (new UnicodeCmapReader())->read(new BinaryView($this->cmap([
+            [1, 6, pack('nnn', 0, 262, 15).str_repeat("\0", 256)],
+            [1, 6, pack('nnn', 0, 262, 0).str_repeat("\0", 256)],
+            [3, 10, $this->formatTwelve([[65, 65, 1]])],
+        ])), 10);
+    }
+
     /** @param list<array{int, int, string}> $records */
     private function cmap(array $records): string
     {

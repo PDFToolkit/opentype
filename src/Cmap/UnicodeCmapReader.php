@@ -37,19 +37,24 @@ final readonly class UnicodeCmapReader
         $seenVariation = false;
         /** @var array<int, SegmentedCharacterMap|SequentialCharacterMap> $maps */
         $maps = [];
-        $previousKey = -1;
+        $previousKey = null;
         for ($index = 0; $index < $count; ++$index) {
             $position = 4 + 8 * $index;
             $record = new EncodingRecord($table->uint16($position), $table->uint16($position + 2), $table->uint32($position + 4));
-            $key = $record->platformId * 65536 + $record->encodingId;
-            if ($key <= $previousKey) {
-                throw new MalformedFontException('Cmap encoding records must be sorted and unique.');
-            }
-            $previousKey = $key;
             if ($record->offset < $directoryEnd) {
                 throw new MalformedFontException('A cmap subtable cannot overlap its encoding directory.');
             }
             $format = $table->uint16($record->offset);
+            $language = match ($format) {
+                0, 2, 4, 6 => $table->uint16($record->offset + 4),
+                8, 10, 12, 13 => $table->uint32($record->offset + 8),
+                default => 0,
+            };
+            $key = [$record->platformId, $record->encodingId, $language];
+            if (($previousKey !== null && $key <= $previousKey) || ($record->platformId !== 1 && $language !== 0)) {
+                throw new MalformedFontException('Cmap records must be sorted and unique by platform, encoding and language; only Macintosh may declare a language.');
+            }
+            $previousKey = $key;
             if ($format === 14) {
                 if ($record->platformId !== 0 || $record->encodingId !== 5 || $seenVariation) {
                     throw new MalformedFontException('Format 14 must occur once under Unicode platform 0, encoding 5.');
