@@ -8,6 +8,7 @@ use PDFToolkit\OpenType\Exception\MalformedFontException;
 use PDFToolkit\OpenType\Exception\UnsupportedFontException;
 use PDFToolkit\OpenType\Layout\ContextMatcher;
 use PDFToolkit\OpenType\Layout\FeatureResolver;
+use PDFToolkit\OpenType\Layout\LookupActivation;
 use PDFToolkit\OpenType\Layout\GdefTable;
 use PDFToolkit\OpenType\Layout\LookupFlags;
 use PDFToolkit\OpenType\Sfnt\ReadLimits;
@@ -33,15 +34,17 @@ final readonly class PositioningEngine
         }
         $definition ??= new GdefTable();
         $budget = new LayoutReadBudget($this->limits->maxSubstitutionOperations);
-        $indices = (new FeatureResolver())->resolve($table->scriptList, $table->featureList, $selection, $budget, $table->featureVariations);
+        $activations = (new FeatureResolver())->resolveActivations($table->scriptList, $table->featureList, $selection, $budget, $table->featureVariations);
         $visited = [];
-        foreach ($indices as $index) {
+        foreach ($activations as $activation) {
+            $index = $activation->lookupIndex;
             $this->preflight($table, $index, $definition, $budget, $visited);
         }
         $buffer = new PositionBuffer($input);
-        foreach ($indices as $index) {
+        foreach ($activations as $activation) {
+            $index = $activation->lookupIndex;
             for ($position = 0; $position < count($input->sequence->glyphs);) {
-                $next = $this->applyAt($table, $index, $buffer, $position, $definition, $context, $budget, 0);
+                $next = $this->applyAt($table, $index, $buffer, $position, $definition, $context, $budget, 0, $activation);
                 $position = $next ?? $position + 1;
             }
         }
@@ -76,7 +79,7 @@ final readonly class PositioningEngine
         }
     }
 
-    private function applyAt(GposTable $table, int $index, PositionBuffer $buffer, int $position, GdefTable $definition, PositioningContext $context, LayoutReadBudget $budget, int $depth): ?int
+    private function applyAt(GposTable $table, int $index, PositionBuffer $buffer, int $position, GdefTable $definition, PositioningContext $context, LayoutReadBudget $budget, int $depth, LookupActivation $activation): ?int
     {
         $budget->consume(1);
         if ($depth >= $this->limits->maxLookupNesting) {
@@ -85,7 +88,7 @@ final readonly class PositioningEngine
         $glyphs = $buffer->input->sequence->glyphs;
         $lookup = $table->lookups[$index];
         $flags = $lookup->lookupFlags;
-        if ($definition->ignores($glyphs[$position], $flags)) {
+        if (!$activation->allows($buffer->input->sequence->featureClusters[$position], $budget) || $definition->ignores($glyphs[$position], $flags)) {
             return null;
         }
         foreach ($lookup->subtables as $subtable) {
@@ -100,7 +103,7 @@ final readonly class PositioningEngine
             } elseif ($subtable instanceof PairAdjustment || $subtable instanceof ClassPairAdjustment) {
                 $covered = $subtable->coverage->indexOf($glyphs[$position]);
                 $second = (new ContextMatcher())->next($glyphs, $position + 1, 1, $flags, $definition, $budget);
-                if ($covered === null || $second === null) {
+                if ($covered === null || $second === null || !$activation->allows($buffer->input->sequence->featureClusters[$second], $budget)) {
                     continue;
                 }
                 $pair = null;
@@ -124,7 +127,7 @@ final readonly class PositioningEngine
                 $firstIndex = $subtable->coverage->indexOf($glyphs[$position]);
                 $second = (new ContextMatcher())->next($glyphs, $position + 1, 1, $flags, $definition, $budget);
                 $secondIndex = $second === null ? null : $subtable->coverage->indexOf($glyphs[$second]);
-                if ($firstIndex === null || $secondIndex === null || $second === null) {
+                if ($firstIndex === null || $secondIndex === null || $second === null || !$activation->allows($buffer->input->sequence->featureClusters[$second], $budget)) {
                     continue;
                 }
                 $exit = $subtable->entryExitRecords[$firstIndex]->exitAnchor;
@@ -157,7 +160,7 @@ final readonly class PositioningEngine
                 }
                 $target = $this->attachmentTarget($buffer, $position, $subtable->type, $flags, $definition, $budget);
                 $targetIndex = $target === null ? null : $subtable->targetCoverage->indexOf($glyphs[$target]);
-                if ($target === null || $targetIndex === null) {
+                if ($target === null || $targetIndex === null || !$activation->allows($buffer->input->sequence->featureClusters[$target], $budget)) {
                     continue;
                 }
                 if ($subtable->type === 6) {
@@ -192,12 +195,20 @@ final readonly class PositioningEngine
                 }
                 foreach ($subtable->rules as $rule) {
                     $matched = (new ContextMatcher())->match($rule, $glyphs, $position, $flags, $definition, $budget);
+                    if ($matched !== null) {
+                        foreach ($matched as $matchedPosition) {
+                            if (!$activation->allows($buffer->input->sequence->featureClusters[$matchedPosition], $budget)) {
+                                $matched = null;
+                                break;
+                            }
+                        }
+                    }
                     if ($matched === null) {
                         continue;
                     }
                     foreach ($rule->lookupRecords as $record) {
                         $target = $matched[$record->sequenceIndex] ?? throw new MalformedFontException('A positioning context index exceeds its matched input.');
-                        $this->applyAt($table, $record->lookupListIndex, $buffer, $target, $definition, $context, $budget, $depth + 1);
+                        $this->applyAt($table, $record->lookupListIndex, $buffer, $target, $definition, $context, $budget, $depth + 1, $activation);
                     }
                     return $matched[count($matched) - 1] + 1;
                 }

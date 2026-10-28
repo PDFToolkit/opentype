@@ -13,6 +13,12 @@ final readonly class FeatureResolver
     /** @return list<int> */
     public function resolve(ScriptList $scripts, FeatureList $features, FeatureSelection $selection, LayoutReadBudget $budget, \PDFToolkit\OpenType\Variation\FeatureVariations|\PDFToolkit\OpenType\Binary\BinaryView|null $variations = null): array
     {
+        return array_map(static fn (LookupActivation $activation): int => $activation->lookupIndex, $this->resolveActivations($scripts, $features, $selection, $budget, $variations));
+    }
+
+    /** @return list<LookupActivation> */
+    public function resolveActivations(ScriptList $scripts, FeatureList $features, FeatureSelection $selection, LayoutReadBudget $budget, \PDFToolkit\OpenType\Variation\FeatureVariations|\PDFToolkit\OpenType\Binary\BinaryView|null $variations = null): array
+    {
         $script = $scripts->script($selection->script);
         if ($script === null && $selection->fallbackToDefaultScript) {
             $script = $scripts->script(new Tag('DFLT'));
@@ -32,10 +38,15 @@ final readonly class FeatureResolver
             $budget->consume(1);
             $requested[$tag->value] = true;
         }
+        $ranges = [];
+        foreach ($selection->ranges as $range) {
+            $budget->consume(1);
+            $ranges[$range->feature->value][] = $range;
+        }
         $selected = $language->requiredFeatureIndex === null ? [] : [$language->requiredFeatureIndex => true];
         foreach ($language->featureIndices as $index) {
             $budget->consume(1);
-            if (isset($requested[$features->featureRecords[$index]->featureTag->value])) {
+            if (isset($requested[$features->featureRecords[$index]->featureTag->value]) || isset($ranges[$features->featureRecords[$index]->featureTag->value])) {
                 $selected[$index] = true;
             }
         }
@@ -47,12 +58,19 @@ final readonly class FeatureResolver
             $features = $variations->evaluate($features, $selection->coordinates, $budget);
         }
         foreach ($selected as $index => $_) {
+            $tag = $features->featureRecords[$index]->featureTag->value;
+            $mask = $index === $language->requiredFeatureIndex ? new FeatureMask(true)
+                : new FeatureMask(isset($requested[$tag]), $ranges[$tag] ?? []);
             foreach ($features->featureRecords[$index]->feature->lookupListIndices as $lookup) {
                 $budget->consume(1);
-                $lookups[$lookup] = true;
+                $lookups[$lookup][] = $mask;
             }
         }
         ksort($lookups, SORT_NUMERIC);
-        return array_keys($lookups);
+        $result = [];
+        foreach ($lookups as $index => $masks) {
+            $result[] = new LookupActivation($index, $masks);
+        }
+        return $result;
     }
 }

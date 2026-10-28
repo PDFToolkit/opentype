@@ -10,6 +10,7 @@ use PDFToolkit\OpenType\Layout\Lookup;
 use PDFToolkit\OpenType\Layout\GdefTable;
 use PDFToolkit\OpenType\Layout\ContextMatcher;
 use PDFToolkit\OpenType\Layout\FeatureResolver;
+use PDFToolkit\OpenType\Layout\LookupActivation;
 use PDFToolkit\OpenType\Sfnt\ReadLimits;
 use PDFToolkit\OpenType\Value\GlyphId;
 use PDFToolkit\OpenType\Value\Tag;
@@ -32,24 +33,26 @@ final readonly class SubstitutionEngine
             }
         }
         $operations = new LayoutReadBudget($this->limits->maxSubstitutionOperations);
-        $indices = (new FeatureResolver())->resolve($table->scriptList, $table->featureList, $selection, $operations, $table->featureVariations);
+        $activations = (new FeatureResolver())->resolveActivations($table->scriptList, $table->featureList, $selection, $operations, $table->featureVariations);
         $definition ??= new GdefTable();
         $records = new LayoutReadBudget($this->limits->maxLayoutRecords);
         $visited = [];
-        foreach ($indices as $index) {
+        foreach ($activations as $activation) {
+            $index = $activation->lookupIndex;
             $this->preflightLookup($table, $index, $selection, $definition, $records, $visited);
         }
         $buffer = new GlyphBuffer($input, $this->limits->maxOutputGlyphs);
-        foreach ($indices as $index) {
+        foreach ($activations as $activation) {
+            $index = $activation->lookupIndex;
             $lookup = $table->lookupList->lookups[$index];
             $reverse = $lookup->lookupType === 8 || ($lookup->subtables[0] instanceof ExtensionSubstFormat1 && $lookup->subtables[0]->extensionLookupType === 8);
             if ($reverse) {
                 for ($position = count($buffer->glyphs) - 1; $position >= 0; --$position) {
-                    $this->applyAt($table, $index, $selection, $buffer, $position, $definition, $operations, 0);
+                    $this->applyAt($table, $index, $selection, $buffer, $position, $definition, $operations, 0, $activation);
                 }
             } else {
                 for ($position = 0; $position < count($buffer->glyphs);) {
-                    $next = $this->applyAt($table, $index, $selection, $buffer, $position, $definition, $operations, 0);
+                    $next = $this->applyAt($table, $index, $selection, $buffer, $position, $definition, $operations, 0, $activation);
                     $position = $next ?? $position + 1;
                 }
             }
@@ -145,14 +148,14 @@ final readonly class SubstitutionEngine
         throw new UnsupportedFontException('The selected substitution subtable has no preflight implementation.');
     }
 
-    private function applyAt(GsubTable $table, int $lookupIndex, FeatureSelection $selection, GlyphBuffer $buffer, int $position, GdefTable $definition, LayoutReadBudget $operations, int $depth): ?int
+    private function applyAt(GsubTable $table, int $lookupIndex, FeatureSelection $selection, GlyphBuffer $buffer, int $position, GdefTable $definition, LayoutReadBudget $operations, int $depth, LookupActivation $activation): ?int
     {
         $operations->consume(1);
         if ($depth >= $this->limits->maxLookupNesting) {
             throw new MalformedFontException('Nested contextual lookups exceed the configured depth.');
         }
         $lookup = $table->lookupList->lookups[$lookupIndex];
-        if (!isset($buffer->glyphs[$position]) || $definition->ignores($buffer->glyphs[$position], $lookup->lookupFlags)) {
+        if (!isset($buffer->glyphs[$position]) || !$activation->allows($buffer->featureClusters[$position], $operations) || $definition->ignores($buffer->glyphs[$position], $lookup->lookupFlags)) {
             return null;
         }
         foreach ($lookup->subtables as $subtable) {
@@ -165,6 +168,14 @@ final readonly class SubstitutionEngine
                 }
                 foreach ($subtable->rules as $rule) {
                     $matched = (new ContextMatcher())->match($rule, $buffer->glyphs, $position, $lookup->lookupFlags, $definition, $operations);
+                    if ($matched !== null) {
+                        foreach ($matched as $matchedPosition) {
+                            if (!$activation->allows($buffer->featureClusters[$matchedPosition], $operations)) {
+                                $matched = null;
+                                break;
+                            }
+                        }
+                    }
                     if ($matched === null) {
                         continue;
                     }
@@ -180,7 +191,7 @@ final readonly class SubstitutionEngine
                             $cursor = $target + 1;
                         }
                         $before = count($buffer->glyphs);
-                        $this->applyAt($table, $record->lookupListIndex, $selection, $buffer, $target, $definition, $operations, $depth + 1);
+                        $this->applyAt($table, $record->lookupListIndex, $selection, $buffer, $target, $definition, $operations, $depth + 1, $activation);
                         $end += count($buffer->glyphs) - $before;
                     }
                     return $end > $position ? $end : $position + 1;
@@ -242,7 +253,7 @@ final readonly class SubstitutionEngine
                     $cursor = $position + 1;
                     foreach ($ligature->componentGlyphIds as $component) {
                         $cursor = (new ContextMatcher())->next($buffer->glyphs, $cursor, 1, $lookup->lookupFlags, $definition, $operations);
-                        if ($cursor === null || $buffer->glyphs[$cursor]->value !== $component->value) {
+                        if ($cursor === null || !$activation->allows($buffer->featureClusters[$cursor], $operations) || $buffer->glyphs[$cursor]->value !== $component->value) {
                             continue 2;
                         }
                         $positions[] = $cursor;

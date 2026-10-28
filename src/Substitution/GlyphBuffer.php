@@ -14,6 +14,8 @@ final class GlyphBuffer
     public array $glyphs;
     /** @var list<int> */
     public array $clusters;
+    /** @var list<int> */
+    public array $featureClusters;
     /** @var list<non-empty-list<int>> */
     public array $components;
     /** @var list<LigatureAssociation|null> */
@@ -24,6 +26,7 @@ final class GlyphBuffer
     {
         $this->glyphs = $input->glyphs;
         $this->clusters = $input->clusters;
+        $this->featureClusters = $input->featureClusters;
         $this->components = $input->componentClusters;
         $this->associations = $input->ligatureAssociations;
         foreach ($this->associations as $association) {
@@ -44,6 +47,7 @@ final class GlyphBuffer
             throw new MalformedFontException('Substitution expansion exceeds the output glyph budget.');
         }
         $cluster = $this->clusters[$positions[0]];
+        $featureCluster = $this->featureClusters[$positions[0]];
         $components = [];
         $componentOffsets = [];
         $oldLigatures = [];
@@ -94,11 +98,13 @@ final class GlyphBuffer
         foreach (array_reverse(array_slice($positions, 1)) as $position) {
             array_splice($this->glyphs, $position, 1);
             array_splice($this->clusters, $position, 1);
+            array_splice($this->featureClusters, $position, 1);
             array_splice($this->components, $position, 1);
             array_splice($this->associations, $position, 1);
         }
         array_splice($this->glyphs, $first, 1, $replacement);
         array_splice($this->clusters, $first, 1, array_fill(0, count($replacement), $cluster));
+        array_splice($this->featureClusters, $first, 1, array_fill(0, count($replacement), $featureCluster));
         array_splice($this->components, $first, 1, array_fill(0, count($replacement), $components));
         array_splice($this->associations, $first, 1, array_fill(0, count($replacement), $association));
         return $delta;
@@ -106,6 +112,6 @@ final class GlyphBuffer
 
     public function result(): GlyphSequence
     {
-        return new GlyphSequence($this->glyphs, $this->clusters, $this->components, $this->associations);
+        return new GlyphSequence($this->glyphs, $this->clusters, $this->components, $this->associations, $this->featureClusters);
     }
 }

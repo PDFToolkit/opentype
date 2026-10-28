@@ -12,6 +12,8 @@ final readonly class GlyphSequence
     public array $glyphs;
     /** @var list<int> */
     public array $clusters;
+    /** @var list<int> Source-cluster feature identity retained from the first consumed glyph. */
+    public array $featureClusters;
     /** @var list<non-empty-list<int>> Source components retained by ligature substitutions. */
     public array $componentClusters;
     /** @var list<LigatureAssociation|null> Distinct from user-provided cluster numbers. */
@@ -22,8 +24,9 @@ final readonly class GlyphSequence
      * @param list<int>|null $clusters Original input positions; substitutions retain their provenance
      * @param list<non-empty-list<int>>|null $componentClusters
      * @param list<LigatureAssociation|null>|null $ligatureAssociations
+     * @param list<int>|null $featureClusters
      */
-    public function __construct(array $glyphs, ?array $clusters = null, ?array $componentClusters = null, ?array $ligatureAssociations = null)
+    public function __construct(array $glyphs, ?array $clusters = null, ?array $componentClusters = null, ?array $ligatureAssociations = null, ?array $featureClusters = null)
     {
         foreach ($glyphs as $glyph) {
             if (!$glyph instanceof GlyphId) {
@@ -42,6 +45,16 @@ final readonly class GlyphSequence
             }
         }
         $this->clusters = array_values($clusters);
+        $featureClusters ??= $this->clusters;
+        if (!array_is_list($featureClusters) || count($featureClusters) !== count($glyphs)) {
+            throw new \InvalidArgumentException('Every glyph requires one feature cluster.');
+        }
+        foreach ($featureClusters as $cluster) {
+            if (!is_int($cluster) || $cluster < 0) {
+                throw new \InvalidArgumentException('Feature clusters must be non-negative.');
+            }
+        }
+        $this->featureClusters = $featureClusters;
         $componentClusters ??= array_map(fn (int $cluster): array => [$cluster], $this->clusters);
         if (count($componentClusters) !== count($glyphs)) {
             throw new \InvalidArgumentException('Each glyph requires source component provenance.');

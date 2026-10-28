@@ -33,16 +33,16 @@ $cmap = (new UnicodeCmapReader())->read($font->table(new Tag('cmap')), $font->gl
 $metrics = (new HorizontalMetricsReader())->read($font);
 $definition = $font->hasTable(new Tag('GDEF')) ? (new GdefReader())->read($font->table(new Tag('GDEF')), $font->glyphCount()) : new GdefTable();
 $gsub = (new GsubReader())->read($font->table(new Tag('GSUB')), $font->glyphCount());
-$gpos = (new GposReader())->read($font->table(new Tag('GPOS')), $font->glyphCount());
+$gpos = $font->hasTable(new Tag('GPOS')) ? (new GposReader())->read($font->table(new Tag('GPOS')), $font->glyphCount()) : null;
 $cases = [];
 foreach (json_decode(stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERROR) as $case) {
     $coordinates = isset($case['coordinates']) ? new NormalizedCoordinates($case['coordinates']) : null;
-    $selection = new FeatureSelection(new Tag('latn'), features: array_map(fn (string $tag): Tag => new Tag($tag), $case['features']), coordinates: $coordinates);
+    $selection = new FeatureSelection(new Tag('latn'), features: array_map(fn (string $tag): Tag => new Tag($tag), $case['features']), coordinates: $coordinates, ranges: array_map(fn (array $range): \PDFToolkit\OpenType\Substitution\FeatureRange => new \PDFToolkit\OpenType\Substitution\FeatureRange(new Tag($range['tag']), $range['start'], $range['end'], $range['enabled'] ?? true), $case['ranges'] ?? []));
     $sequence = new GlyphSequence(array_map(fn (int $code): GlyphId => $cmap->glyphFor(new CodePoint($code)), $case['codePoints']));
     $sequence = (new SubstitutionEngine())->apply($gsub, $selection, $sequence, $definition);
     $positions = array_map(fn (GlyphId $glyph): GlyphPosition => new GlyphPosition($metrics->advanceWidth($glyph)), $sequence->glyphs);
     $context = new PositioningContext($metrics->unitsPerEm, $case['pixelsPerEm'] ?? null, $coordinates !== null && $definition->itemVariationStore !== null ? new VariationInstance($definition->itemVariationStore, $coordinates) : null);
-    $positioned = (new PositioningEngine())->apply($gpos, $selection, new PositionedGlyphSequence($sequence, $positions), $definition, $context);
+    $positioned = $gpos === null ? new PositionedGlyphSequence($sequence, $positions) : (new PositioningEngine())->apply($gpos, $selection, new PositionedGlyphSequence($sequence, $positions), $definition, $context);
     $x = $y = 0.0;
     $origins = [];
     $values = [];
@@ -54,4 +54,4 @@ foreach (json_decode(stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERRO
     }
     $cases[] = ['glyphs' => array_map(fn (GlyphId $glyph): int => $glyph->value, $sequence->glyphs), 'clusters' => $sequence->clusters, 'positions' => $values, 'origins' => $origins, 'advance' => [$x, $y]];
 }
-echo json_encode(['cases' => $cases, 'gsubTypes' => array_map(fn ($lookup): int => $lookup->lookupType, $gsub->lookupList->lookups), 'gposTypes' => array_map(fn ($lookup): int => $lookup->lookupType, $gpos->lookups)], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT), "\n";
+echo json_encode(['cases' => $cases, 'gsubTypes' => array_map(fn ($lookup): int => $lookup->lookupType, $gsub->lookupList->lookups), 'gposTypes' => array_map(fn ($lookup): int => $lookup->lookupType, ($gpos?->lookups ?? []))], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT), "\n";
