@@ -2,6 +2,16 @@
 
 English | [Français](CHANGELOG.fr.md)
 
+## Unreleased
+
+## 0.4.0 — 2026-10-28
+
+- Add bounded TTC/OTC 1/2 selection and whole-face SFNT serialization, preserving shared tables and discarding invalidated DSIG.
+- Implement Unicode cmap 0/2/6/8/10/13 alongside 4/12/14 and correct language-aware encoding-record order; compare mappings with FreeType.
+- Expose typed size/ssXX/cvXX parameters, optical-family selection and CFF Name INDEX/ROS metadata, with fontTools comparisons.
+- Add source-cluster feature ranges to GSUB/GPOS without cutting contextual lookups; preserve range identity through substitutions and validate against HarfBuzz.
+- Update the Adobe guide map, exact coverage and complete English/French documentation. No hint VM, full Unicode shaper, static-variable writer or signature trust is implied.
+
 ## 0.3.0 — 2026-10-15
 
 - Read and explicitly select precomputed hdmx/LTSH/VDMX metrics with bounded immutable records and a fontTools oracle.

@@ -8,7 +8,7 @@ OpenType belongs to [PDFToolkit](https://github.com/PDFToolkit), while remaining
 independent of PDF: installing `pdftoolkit/opentype` installs no PDF package.
 Its names and structures follow the [OpenType 1.9.1 specification](https://learn.microsoft.com/en-us/typography/opentype/spec/).
 
-Read individual TrueType/OTTO fonts, multilingual metadata and horizontal/vertical
+Read individual TrueType/OTTO fonts and explicit TTC/OTC faces, multilingual metadata and horizontal/vertical
 metrics; normalize user axes, evaluate variable metrics, assemble quadratic
 TrueType outlines and execute cubic CFF/CFF2 programs. GSUB substitutions and
 GPOS positioning use immutable script, language, feature, lookup, anchor and
@@ -16,7 +16,7 @@ variation objects. Applications explicitly select instances and execution
 policies. There is no global registry or hidden file access.
 
 ```sh
-composer require 'pdftoolkit/opentype:^0.3'
+composer require 'pdftoolkit/opentype:^0.4'
 ```
 
 PHP 8.3 or newer and a 64-bit platform are required. There are no runtime package
@@ -55,6 +55,7 @@ remain available for subsequent text handling.
 
 Guides follow each object contract:
 
+- [Collections, cmap formats, feature ranges and optical parameters](docs/collections-and-feature-parameters.md).
 - [Substitutions](docs/substitutions.md) and [positioning](docs/positioning.md).
 - [User axes](docs/font-axes.md), [variable metrics](docs/variable-metrics.md),
   [names and OS/2](docs/font-metadata.md), [headers and styles](docs/font-headers-and-styles.md).
@@ -65,22 +66,22 @@ The [architecture](docs/architecture.md), [coverage](docs/coverage.md),
 [security policy](SECURITY.md) and [shared documentation](https://pdftoolkit.github.io/modules/opentype/)
 describe the boundaries. API pages are generated from the exact published source.
 
-## Scope of 0.3
+## Scope of 0.4
 
 | Mechanism | Implementation |
 | --- | --- |
-| Individual SFNT and cmap | TrueType/OTTO directories, checksums, Unicode 4/12/14 mappings |
+| SFNT, collections and cmap | TrueType/OTTO, TTC/OTC 1/2, selected-face serialization, checksums, Unicode 0/2/4/6/8/10/12/13/14 mappings |
 | Metadata | Complete head/hhea/maxp/post, name 0/1, OS/2 0–5 and STAT 1.0–1.2 records |
 | Axes and metrics | fvar/avar 1.0 normalization, horizontal/vertical metrics, native HVAR/VVAR/MVAR |
 | TrueType geometry | Bounded loca/glyf decoding, composite assembly, quadratic paths, native gvar/cvar and explicit phantom metrics |
 | CFF/CFF2 geometry | Bounded Type 2 programs and subroutines, cubic paths, explicit matrices, encodings and native blends |
-| Layout | GSUB 1–8, GDEF, GPOS 1–9, all contextual formats, native variations and Device corrections |
+| Layout | GSUB 1–8, GDEF, GPOS 1–9, contextual formats, source-cluster feature masks, size/ssXX/cvXX parameters, native variations and Device corrections |
 | Device declarations | gasp recommendations, hdmx widths, LTSH thresholds and VDMX heights with explicit selection |
 
 The [coverage inventory](docs/coverage.md) identifies 27 implemented table scopes,
 4 partial tables and 19 pending tables. TrueType instruction execution, CFF hint
 application, color/bitmap/baseline/math/justification tables, legacy auxiliary
-tables, collections, WOFF/WOFF2, writing and subsetting remain absent. Executing an
+tables, WOFF/WOFF2, variable-instance writing and subsetting remain absent. Executing an
 unhinted outline or metric instance does not write a static font. Preserved bytes
 do not establish semantic support.
 

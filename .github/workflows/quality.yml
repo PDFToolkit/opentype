@@ -32,6 +32,7 @@ jobs:
       - run: composer audit --locked
       - run: composer check
       - run: python -m pip install --require-hashes -r tools/validation-requirements.txt
+      - run: sudo apt-get update && sudo apt-get install -y libfreetype6
       - name: Verify original Adobe guide identity
         run: python tools/validate_reference.py
       - name: Check reproducible font fixtures
@@ -47,6 +48,7 @@ jobs:
           python tools/build_gvar_fixture.py --check
           python tools/build_metadata_fixture.py --check
           python tools/build_device_fixture.py --check
+          python tools/build_collection_fixtures.py --check
       - name: Compare font interpretation with fontTools
         run: python tools/validate_font_model.py --php php tests/fixtures/ToolkitLayout.ttf tests/fixtures/ToolkitUnicode.ttf tests/fixtures/ToolkitUnicode.otf tests/fixtures/ToolkitAdvanced.ttf tests/fixtures/ToolkitVariable.ttf
       - name: Compare supported glyph substitutions with HarfBuzz
@@ -71,6 +73,14 @@ jobs:
         run: python tools/validate_headers.py --php php
       - name: Compare precomputed device metrics with fontTools
         run: python tools/validate_device_metrics.py --php php
+      - name: Compare additional cmap formats with FreeType
+        run: python tools/validate_cmaps.py --php php
+      - name: Compare collections and selected-face serialization with fontTools
+        run: python tools/validate_collections.py --php php
+      - name: Compare optical and named feature parameters with fontTools
+        run: python tools/validate_feature_parameters.py --php php
+      - name: Compare context-preserving feature ranges with HarfBuzz
+        run: python tools/validate_feature_ranges.py --php php
       - name: Run the documented example
         run: |
           php examples/substitution.php

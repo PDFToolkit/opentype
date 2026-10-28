@@ -16,7 +16,7 @@ and table data, including tables whose semantics are not implemented.
 identifiers. `CodePoint` is a Unicode scalar; `GlyphId` identifies a glyph within
 a font. Unicode identity and glyph identity are separate contracts.
 
-`UnicodeCmapReader` selects a supported base Unicode mapping. Formats 4/12 cover
+`UnicodeCmapReader` selects a supported base Unicode mapping. Formats 0/2/4/6/8/10/12/13 cover
 the repertoire; format 14 describes variation sequences. Missing base characters
 map to glyph zero; unsupported variation sequences remain distinguishable.
 
@@ -81,16 +81,20 @@ See [axes](font-axes.md), [metrics](variable-metrics.md),
 ## Relationship to PDFToolkit
 
 The PDF core owns PDF font dictionaries, CID mappings and text operators.
-`pdf-fonts` converts supported external TrueType programs to those PDF objects.
+`pdf-fonts` 0.2 converts supported static TrueType and CFF programs to those PDF objects.
 `opentype` represents an independent font format and transformations. The core
 needs no production dependency on this package.
 
 Connecting selected glyphs to PDF content requires explicit glyph encoding,
-positioning and Unicode extraction mappings. This release does not change the
-existing converter or add implicit shaping to its output.
+positioning and Unicode extraction mappings. The optional Fonts adapter receives explicit layout stages; it does not add
+implicit shaping to existing conversion calls.
 
 Technical sources: [SFNT](https://learn.microsoft.com/en-us/typography/opentype/spec/otff),
 [cmap](https://learn.microsoft.com/en-us/typography/opentype/spec/cmap),
 [hmtx](https://learn.microsoft.com/en-us/typography/opentype/spec/hmtx),
 [layout common tables](https://learn.microsoft.com/en-us/typography/opentype/spec/chapter2)
 and [GSUB](https://learn.microsoft.com/en-us/typography/opentype/spec/gsub).
+
+`CollectionReader` and `SfntSerializer` provide explicit selected-face extraction.
+`FeatureRange` preserves context while selecting source-cluster intervals; typed
+feature parameters expose optical and UI metadata. See [their guide](collections-and-feature-parameters.md).

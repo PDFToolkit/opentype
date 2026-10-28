@@ -19,7 +19,7 @@ Unicode ; `GlyphId` identifie un glyphe dans une fonte. Les deux identités
 constituent des contrats distincts.
 
 `UnicodeCmapReader` sélectionne une correspondance Unicode de base prise en
-charge. Les formats 4/12 couvrent le répertoire ; le format 14 décrit les
+charge. Les formats 0/2/4/6/8/10/12/13 couvrent le répertoire ; le format 14 décrit les
 séquences de variation. Un caractère de base absent correspond au glyphe zéro ;
 une séquence de variation non prise en charge reste distinguable.
 
@@ -92,18 +92,22 @@ Voir [axes](font-axes.md), [métriques](variable-metrics.md),
 ## Relation avec PDFToolkit
 
 Le core PDF possède les dictionnaires de fontes PDF, correspondances CID et
-opérateurs de texte. `pdf-fonts` convertit les programmes TrueType externes pris
+opérateurs de texte. `pdf-fonts` 0.2 convertit les programmes statiques TrueType et CFF pris
 en charge vers ces objets. `opentype` représente un format de fonte indépendant
 et ses transformations. Le core n'a besoin d'aucune dépendance de production
 vers ce package.
 
 Relier les glyphes sélectionnés au contenu PDF nécessite un encodage, un
-positionnement et des correspondances d'extraction Unicode explicites. Cette
-version ne modifie pas le convertisseur existant et n'ajoute pas de shaping
-implicite à sa sortie.
+positionnement et des correspondances d'extraction Unicode explicites. L'adaptateur
+optionnel Fonts reçoit des étapes de layout explicites ; il n'ajoute pas de shaping
+implicite aux appels de conversion existants.
 
 Sources techniques : [SFNT](https://learn.microsoft.com/en-us/typography/opentype/spec/otff),
 [cmap](https://learn.microsoft.com/en-us/typography/opentype/spec/cmap),
 [hmtx](https://learn.microsoft.com/en-us/typography/opentype/spec/hmtx),
 [tables communes de layout](https://learn.microsoft.com/en-us/typography/opentype/spec/chapter2)
 et [GSUB](https://learn.microsoft.com/en-us/typography/opentype/spec/gsub).
+
+`CollectionReader` et `SfntSerializer` extraient explicitement une face sélectionnée.
+`FeatureRange` sélectionne des intervalles de clusters source sans couper le contexte ;
+les paramètres typés exposent les métadonnées optiques et UI. Voir [le guide](collections-and-feature-parameters.md).

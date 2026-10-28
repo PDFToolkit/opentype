@@ -2,6 +2,16 @@
 
 [English](CHANGELOG.md) | Français
 
+## Unreleased
+
+## 0.4.0 — 2026-10-28
+
+- Ajouter sélection TTC/OTC 1/2 bornée et sérialisation entière d'une face SFNT, avec tables partagées et suppression de la DSIG invalidée.
+- Implémenter les cmap Unicode 0/2/6/8/10/13 avec 4/12/14 et corriger l'ordre par langue des encodages ; comparer à FreeType.
+- Exposer paramètres typés size/ssXX/cvXX, sélection de famille optique et métadonnées Name INDEX/ROS CFF, comparés à fontTools.
+- Ajouter des plages de fonctionnalités sur clusters source dans GSUB/GPOS sans couper les contextes ; préserver leur identité à travers les substitutions et comparer à HarfBuzz.
+- Actualiser carte du guide Adobe, couverture exacte et documentation complète FR/EN. Aucune VM de hinting, shaping Unicode complet, écriture d'instance statique ou confiance de signature n'est implicite.
+
 ## 0.3.0 — 15 octobre 2026
 
 - Lire et sélectionner explicitement les métriques précalculées hdmx/LTSH/VDMX avec des objets immuables bornés et un oracle fontTools.

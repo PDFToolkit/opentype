@@ -15,7 +15,7 @@ The original guide is preserved: **826,379 bytes**, SHA-256
 Provenance is recorded in `resources/reference-documents/metadata.json`.
 The PDF is excluded from Composer archives.
 
-## Implemented mechanisms in 0.3
+## Implemented mechanisms in 0.4
 
 The machine-readable [coverage manifest](../resources/coverage.json) inventories
 50 OpenType tables: 27 implemented within the versioned scope below, 4 partial,
@@ -24,8 +24,8 @@ or a complete font renderer.
 
 | Domain | Supported scope |
 | --- | --- |
-| Binary and SFNT | Bounded views, typed identities, individual TrueType/OTTO directories, table records and checksum policies |
-| cmap (partial) | Unicode formats 4/12 and variation sequences format 14 |
+| Binary and SFNT | Bounded views, typed identities, individual TrueType/OTTO directories, TTC/OTC 1/2, selected-face serialization, table records and checksum policies |
+| cmap (partial) | Unicode formats 0/2/4/6/8/10/12/13 and variation sequences format 14 |
 | head, hhea, maxp, post | Complete declared fields; maxp 0.5/1.0 and post 1/2/2.5/3, including glyph names |
 | name, OS/2 | Name 0/1 records and language tags; explicit Unicode/ASCII/Macintosh Roman decoding; OS/2 0–5 fields and embedding flags |
 | hmtx, vhea, vmtx, VORG | Horizontal/vertical advances and bearings, versioned vertical header and CFF origins |
@@ -59,7 +59,7 @@ These **19 tables remain uninterpreted** beyond their bounded SFNT bytes:
 
 The four **partial tables** have these precise boundaries:
 
-- `cmap`: formats 0/2/6/8/10/13 and legacy platform mapping policies are absent.
+- `cmap`: legacy platform transcoding policies remain absent; all defined Unicode subtable formats execute.
 - `glyf`: contour geometry, composite variation and phantom metrics execute;
   retained instruction bytes do not run. Grid fitting and pixel rounding need a VM.
 - `CFF `: supported Type 2 geometry executes, including arithmetic, subroutines
@@ -70,18 +70,20 @@ The four **partial tables** have these precise boundaries:
   Hint application and rasterization are absent; retaining DICT operands does not
   implement every metadata consumer.
 
-`avar` version 2 is unsupported. Locale/BCP 47 registry matching, automatic style
+`avar` version 2 is a proposal outside the published 1.9.1 specification and is not implemented. Locale/BCP 47 registry matching, automatic style
 naming and PostScript instance-name generation are not provided by `name`/STAT.
 Default metadata are never silently rewritten by an instance: callers explicitly
 apply MVAR/HVAR/VVAR or gvar phantom results, avoiding double application.
 
 ## Containers and separate application responsibilities
 
-TTC/OTC collections, WOFF/WOFF2 decoding, font serialization, subsetting and writing
-a static variable-font instance remain pending. Evaluating an outline or metric
-instance does not produce a rewritten font file. Container support needs bounded
-shared-table offsets and explicit decompression; writing needs rebuilt dependent
-tables and checksums, and subsetting needs glyph/lookup/variation closure.
+TTC/OTC 1/2 reading and whole selected-face serialization are implemented; DSIG is
+opaque and discarded when serialization invalidates it. WOFF/WOFF2 decoding,
+subsetting and writing a static variable-font instance remain pending. Evaluating
+an outline or metric instance does not produce a rewritten static font. See
+[collections and feature parameters](collections-and-feature-parameters.md) for
+optical families, stylistic/character-variant names and context-preserving feature
+ranges, together with the page-by-page Adobe guide map.
 
 The library does not provide a rasterizer, complete Unicode script shaping,
 bidirectional layout, line breaking, system font discovery, locale/font fallback,

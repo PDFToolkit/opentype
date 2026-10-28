@@ -8,7 +8,7 @@ OpenType fait partie de [PDFToolkit](https://github.com/PDFToolkit) et reste
 indépendant du PDF : installer `pdftoolkit/opentype` n'installe aucun package PDF.
 Ses noms et structures suivent la [spécification OpenType 1.9.1](https://learn.microsoft.com/en-us/typography/opentype/spec/).
 
-Lire les fontes TrueType/OTTO individuelles, leurs métadonnées multilingues et
+Lire les fontes TrueType/OTTO individuelles et faces TTC/OTC explicites, leurs métadonnées multilingues et
 métriques horizontales/verticales ; normaliser les axes utilisateur, évaluer les
 métriques variables, assembler les contours TrueType quadratiques et exécuter les
 programmes cubiques CFF/CFF2. Les substitutions GSUB et le positionnement GPOS
@@ -17,7 +17,7 @@ variation. L'application choisit explicitement instances et politiques d'exécut
 Il n'y a ni registre global ni accès fichier caché.
 
 ```sh
-composer require 'pdftoolkit/opentype:^0.3'
+composer require 'pdftoolkit/opentype:^0.4'
 ```
 
 PHP 8.3 ou ultérieur et une plateforme 64 bits sont requis. Aucune dépendance de
@@ -57,6 +57,7 @@ traitement ultérieur du texte.
 
 Les guides suivent les contrats des objets :
 
+- [Collections, cmap, plages et paramètres optiques](docs/fr/collections-and-feature-parameters.md).
 - [Substitutions](docs/fr/substitutions.md) et [positionnement](docs/fr/positioning.md).
 - [Axes utilisateur](docs/fr/font-axes.md), [métriques variables](docs/fr/variable-metrics.md),
   [noms et OS/2](docs/fr/font-metadata.md), [en-têtes et styles](docs/fr/font-headers-and-styles.md).
@@ -67,23 +68,23 @@ L'[architecture](docs/fr/architecture.md), la [couverture](docs/fr/coverage.md),
 [politique de sécurité](SECURITY.fr.md) et la [documentation partagée](https://pdftoolkit.github.io/fr/modules/opentype/)
 décrivent les frontières. Les pages API proviennent du code exact publié.
 
-## Périmètre de 0.3
+## Périmètre de 0.4
 
 | Mécanisme | Implémentation |
 | --- | --- |
-| SFNT individuel et cmap | Répertoires TrueType/OTTO, sommes de contrôle et correspondances Unicode 4/12/14 |
+| SFNT, collections et cmap | TrueType/OTTO, TTC/OTC 1/2, sérialisation de face, sommes de contrôle et Unicode 0/2/4/6/8/10/12/13/14 |
 | Métadonnées | Enregistrements complets head/hhea/maxp/post, name 0/1, OS/2 0–5 et STAT 1.0–1.2 |
 | Axes et métriques | Normalisation fvar/avar 1.0, métriques horizontales/verticales, HVAR/VVAR/MVAR natifs |
 | Géométrie TrueType | Décodage loca/glyf borné, assemblage composite, tracés quadratiques, gvar/cvar natifs et métriques fantômes explicites |
 | Géométrie CFF/CFF2 | Programmes Type 2 et sous-programmes bornés, tracés cubiques, matrices explicites, encodages et blends natifs |
-| Layout | GSUB 1–8, GDEF, GPOS 1–9, tous les formats contextuels, variations natives et corrections Device |
+| Layout | GSUB 1–8, GDEF, GPOS 1–9, contextes, masques par clusters source, paramètres size/ssXX/cvXX, variations natives et corrections Device |
 | Déclarations de périphérique | Recommandations gasp, largeurs hdmx, seuils LTSH et hauteurs VDMX avec sélection explicite |
 
 L'[inventaire de couverture](docs/fr/coverage.md) identifie 27 périmètres de tables
 implémentés, 4 tables partielles et 19 en attente. Exécution des instructions
 TrueType, application des hints CFF, tables de couleur/bitmap/lignes de
-base/mathématiques/justification, tables auxiliaires historiques, collections,
-WOFF/WOFF2, écriture et sous-ensembles restent absents. Exécuter une instance de
+base/mathématiques/justification, tables auxiliaires historiques,
+WOFF/WOFF2, écriture d'instances variables et sous-ensembles restent absents. Exécuter une instance de
 contour non hinté ou de métriques n'écrit pas une fonte statique. Les octets
 conservés n'établissent pas de support sémantique.
 

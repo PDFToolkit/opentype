@@ -15,7 +15,7 @@ L'original est conservé : **826 379 octets**, SHA-256
 Sa provenance figure dans `resources/reference-documents/metadata.json`.
 Le PDF est exclu des archives Composer.
 
-## Mécanismes implémentés en 0.3
+## Mécanismes implémentés en 0.4
 
 Le [manifeste de couverture](../../resources/coverage.json) inventorie 50 tables
 OpenType : 27 implémentées dans le périmètre versionné ci-dessous, 4 partielles
@@ -24,8 +24,8 @@ de consommation ni un moteur de rendu complet.
 
 | Domaine | Périmètre pris en charge |
 | --- | --- |
-| Binaire et SFNT | Vues bornées, identités typées, répertoires TrueType/OTTO individuels, enregistrements et politiques de sommes de contrôle |
-| cmap (partiel) | Formats Unicode 4/12 et séquences de variation au format 14 |
+| Binaire et SFNT | Vues bornées, identités typées, répertoires TrueType/OTTO individuels, TTC/OTC 1/2, sérialisation de face sélectionnée, enregistrements et sommes de contrôle |
+| cmap (partiel) | Formats Unicode 0/2/4/6/8/10/12/13 et séquences de variation au format 14 |
 | head, hhea, maxp, post | Champs déclarés complets ; maxp 0.5/1.0 et post 1/2/2.5/3, dont noms de glyphes |
 | name, OS/2 | Enregistrements et langues name 0/1 ; décodage Unicode/ASCII/Macintosh Roman explicite ; champs OS/2 0–5 et droits d'incorporation |
 | hmtx, vhea, vmtx, VORG | Avances/approches horizontales et verticales, en-tête vertical versionné et origines CFF |
@@ -59,7 +59,7 @@ Ces **19 tables restent non interprétées**, au-delà de leurs octets SFNT born
 
 Les quatre **tables partielles** ont les limites suivantes :
 
-- `cmap` : formats 0/2/6/8/10/13 et politiques historiques de correspondance absents.
+- `cmap` : politiques de transcodage historiques absentes ; tous les formats de sous-tables Unicode définis sont exécutés.
 - `glyf` : géométrie, variation composite et métriques fantômes s'exécutent ; les
   octets d'instructions conservés ne sont pas exécutés. Ajustement à la grille et
   arrondi aux pixels nécessitent une machine virtuelle.
@@ -71,7 +71,7 @@ Les quatre **tables partielles** ont les limites suivantes :
   Application des hints et rastérisation absentes ; conserver les opérandes DICT
   n'implémente pas tous les consommateurs de métadonnées.
 
-`avar` version 2 n'est pas pris en charge. Correspondance locale/registre BCP 47,
+`avar` version 2 est une proposition hors de la spécification 1.9.1 publiée et n'est pas implémentée. Correspondance locale/registre BCP 47,
 nommage automatique des styles et génération des noms PostScript d'instances ne
 sont pas fournis par `name`/STAT. Une instance ne réécrit jamais silencieusement
 les métadonnées par défaut : l'appelant applique explicitement MVAR/HVAR/VVAR ou
@@ -79,12 +79,13 @@ les points fantômes gvar, sans double application.
 
 ## Conteneurs et responsabilités applicatives distinctes
 
-Collections TTC/OTC, décodage WOFF/WOFF2, sérialisation, sous-ensembles et écriture
-d'une instance statique de fonte variable restent en attente. Évaluer une instance
-de contours ou métriques ne produit pas un fichier réécrit. Les conteneurs demandent
-des offsets partagés bornés et une décompression explicite ; l'écriture nécessite
-la reconstruction des tables dépendantes et sommes de contrôle, et les sous-ensembles
-la fermeture des dépendances de glyphes/lookups/variations.
+Lecture TTC/OTC 1/2 et sérialisation entière d'une face sélectionnée sont
+implémentées ; DSIG reste opaque et est supprimée si la sérialisation l'invalide.
+Décodage WOFF/WOFF2, sous-ensembles et écriture d'une instance variable statique
+restent absents. Évaluer un contour ou une métrique ne produit pas de fichier
+statique réécrit. Voir [collections et paramètres](collections-and-feature-parameters.md)
+pour les familles optiques, noms de variantes et plages de fonctionnalités
+conservant le contexte, ainsi que la carte du guide Adobe page par page.
 
 La bibliothèque ne fournit pas de rastériseur, de shaping Unicode complet,
 d'ordre bidirectionnel, de coupure de lignes, de découverte des fontes système,
