@@ -4,6 +4,11 @@ English | [Français](CHANGELOG.fr.md)
 
 ## Unreleased
 
+## 0.4.1 - 2026-11-09
+
+- Update the locked development dependency `symfony/filesystem` to 7.4.23, addressing [GHSA-6prc-h956-hxjq](https://github.com/symfony/symfony/security/advisories/GHSA-6prc-h956-hxjq) in the code-style toolchain.
+- Preserve production code, public APIs, PHP requirements and every other locked package version and source reference.
+
 ## 0.4.0 — 2026-10-28
 
 - Add bounded TTC/OTC 1/2 selection and whole-face SFNT serialization, preserving shared tables and discarding invalidated DSIG.
